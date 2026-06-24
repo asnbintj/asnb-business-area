@@ -570,6 +570,36 @@ tr.accordion-open { background: #eef3fb !important; }
   </div>
 </div>
 
+<!-- 구역 변경/폐업 모달 -->
+<div class="modal-overlay" id="overrideModal">
+  <div class="modal-box" style="max-width:380px;">
+    <div class="modal-header" style="background:linear-gradient(135deg,#3b1a5c 0%,#7F77DD 100%);">
+      <h3>🔄 담당 구역 변경</h3>
+      <button class="modal-close" onclick="window.closeOverrideModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p id="overrideModalCafeName" style="font-size:13px;color:#333;margin-bottom:3px;font-weight:600;"></p>
+      <p id="overrideModalCurrentPerson" style="font-size:12px;color:#888;margin-bottom:16px;"></p>
+      <div class="modal-field">
+        <label>담당자 변경</label>
+        <select id="overridePersonSelect" style="width:100%;padding:9px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit;outline:none;background:#fff;">
+          <option value="하명수 형제">하명수 형제</option>
+          <option value="임형규 형제">임형규 형제</option>
+          <option value="오주명 형제">오주명 형제</option>
+          <option value="프랜차이즈">프랜차이즈</option>
+        </select>
+      </div>
+      <div class="modal-btn-row" style="justify-content:space-between;margin-top:20px;">
+        <button class="modal-btn" style="background:#dc2626;color:#fff;" onclick="window.confirmDeleteCafe()">🗑 폐업 삭제</button>
+        <div style="display:flex;gap:8px;">
+          <button class="modal-btn modal-btn-secondary" onclick="window.closeOverrideModal()">취소</button>
+          <button class="modal-btn modal-btn-primary" onclick="window.confirmOverrideModal()">변경 저장</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- 관리자 패널 모달 -->
 <div class="modal-overlay" id="adminModal">
   <div class="modal-box" style="max-width:640px;">
@@ -591,6 +621,13 @@ tr.accordion-open { background: #eef3fb !important; }
         <table class="admin-table">
           <thead><tr><th>이름</th><th style="width:70px;text-align:center;">상태</th><th>관리</th></tr></thead>
           <tbody id="adminUserList"></tbody>
+        </table>
+      </div>
+      <div class="admin-section" id="deletedCafeSection" style="display:none;">
+        <div class="admin-section-title">🗑 폐업 처리된 카페</div>
+        <table class="admin-table">
+          <thead><tr><th>카페명</th><th style="width:80px;">원래 담당</th><th style="width:56px;">복원</th></tr></thead>
+          <tbody id="deletedCafeList"></tbody>
         </table>
       </div>
     </div>
@@ -654,6 +691,7 @@ window._getDocs = getDocs;
 window._getDoc = getDoc;
 window.visitsCache = {};
 window.usersCache = {};
+window.overridesCache = {};
 
 /* ── 초기 사용자 목록 (Firestore 첫 마이그레이션용) ── */
 const INITIAL_USERS = {
@@ -711,6 +749,7 @@ window.doLogin = async function() {
   document.getElementById('loadingOverlay').style.display = 'flex';
   await window.loadAllReports();
   await window.loadAllVisits();
+  await window.loadAllOverrides();
   window.buildStats();
   window.buildTabs();
   window.render();
@@ -724,6 +763,15 @@ window.loadAllVisits = async function() {
     window.visitsCache = {};
     snap.forEach(d => { window.visitsCache[d.id] = d.data(); });
   } catch(e) { console.error('loadAllVisits error', e); }
+};
+
+window.loadAllOverrides = async function() {
+  try {
+    const col = window._collection(window._db, 'overrides');
+    const snap = await window._getDocs(col);
+    window.overridesCache = {};
+    snap.forEach(d => { window.overridesCache[d.id] = d.data(); });
+  } catch(e) { console.error('loadAllOverrides error', e); }
 };
 
 window.doLogout = function() {
@@ -947,7 +995,10 @@ function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').repl
 function getAllRows() {
   let all = [];
   for (const [p, rows] of Object.entries(DATA)) rows.forEach(r => all.push({...r, person:p}));
-  return all;
+  const ov = window.overridesCache || {};
+  return all
+    .filter(r => !ov[cafeKey(r)]?.deleted)
+    .map(r => { const o=ov[cafeKey(r)]; return o&&o.person?{...r,person:o.person}:r; });
 }
 function getRows() {
   let rows;
@@ -959,9 +1010,7 @@ function getRows() {
       return visitors.includes(myName);
     });
   } else {
-    rows = currentTab==="전체" ? getAllRows()
-      : currentTab==="프랜차이즈" ? DATA["프랜차이즈"].map(r=>({...r,person:"프랜차이즈"}))
-      : (DATA[currentTab]||[]).map(r=>({...r,person:currentTab}));
+    rows = currentTab==="전체" ? getAllRows() : getAllRows().filter(r=>r.person===currentTab);
   }
   if (dongFilter) rows = rows.filter(r => r.dong===dongFilter);
   const q = document.getElementById("search").value.trim().toLowerCase();
@@ -985,7 +1034,7 @@ function getRows() {
 window.buildTabs = function() {
   const wrap = document.getElementById("tabs"); wrap.innerHTML = "";
   TABS_ORDER.forEach(t => {
-    const cnt = t==="전체" ? getAllRows().length : (DATA[t]||[]).length;
+    const cnt = t==="전체" ? getAllRows().length : getAllRows().filter(r=>r.person===t).length;
     const btn = document.createElement("button");
     btn.className = "tab-btn"+(t===currentTab?" active":"");
     btn.dataset.person = t;
@@ -1022,7 +1071,7 @@ window.buildTabs = function() {
 };
 
 function buildFilters() {
-  const rows = currentTab==="전체" ? getAllRows() : currentTab==="프랜차이즈" ? DATA["프랜차이즈"].map(r=>({...r,person:"프랜차이즈"})) : (DATA[currentTab]||[]).map(r=>({...r,person:currentTab}));
+  const rows = currentTab==="전체"||currentTab==="내 방문 현황" ? getAllRows() : getAllRows().filter(r=>r.person===currentTab);
   const dongs = [...new Set(rows.map(r=>r.dong))].filter(Boolean).sort();
   const wrap = document.getElementById("filter-row");
   wrap.innerHTML = `<span class="filter-label">동/면 필터</span>`;
@@ -1088,10 +1137,83 @@ window.confirmVisitModal = async function() {
   } catch(e) { alert('저장 오류: '+e.message); }
 };
 
+/* ── 구역 변경 / 폐업 삭제 ── */
+let overrideModalCafe = null;
+
+window.openOverrideModal = function(cafe) {
+  overrideModalCafe = cafe;
+  document.getElementById('overrideModalCafeName').textContent = `📍 ${cafe.name}${cafe.branch?' ('+cafe.branch+')':''}`;
+  document.getElementById('overrideModalCurrentPerson').textContent = `현재 담당: ${cafe.person}`;
+  document.getElementById('overridePersonSelect').value = cafe.person;
+  document.getElementById('overrideModal').classList.add('open');
+};
+
+window.closeOverrideModal = function() {
+  document.getElementById('overrideModal').classList.remove('open');
+  overrideModalCafe = null;
+};
+
+window.confirmOverrideModal = async function() {
+  if (!overrideModalCafe) return;
+  const key = cafeKey(overrideModalCafe);
+  const newPerson = document.getElementById('overridePersonSelect').value;
+  try {
+    const data = { person: newPerson, deleted: false };
+    await window._setDoc(window._doc(window._db, 'overrides', key), data);
+    window.overridesCache[key] = data;
+    window.closeOverrideModal();
+    window.buildTabs();
+    window.buildStats();
+    window.render();
+  } catch(e) { alert('저장 오류: ' + e.message); }
+};
+
+window.confirmDeleteCafe = async function() {
+  if (!overrideModalCafe) return;
+  if (!confirm(`[${overrideModalCafe.name}]을(를) 폐업 처리하시겠습니까?\n목록에서 제외됩니다. 관리자 패널에서 복원할 수 있습니다.`)) return;
+  const key = cafeKey(overrideModalCafe);
+  try {
+    await window._setDoc(window._doc(window._db, 'overrides', key), { deleted: true });
+    window.overridesCache[key] = { deleted: true };
+    window.closeOverrideModal();
+    window.buildTabs();
+    window.buildStats();
+    window.render();
+  } catch(e) { alert('저장 오류: ' + e.message); }
+};
+
+function renderDeletedCafeList() {
+  const ov = window.overridesCache || {};
+  const allData = [];
+  for (const [p, rows] of Object.entries(DATA)) rows.forEach(r => allData.push({...r, _origPerson:p}));
+  const deleted = allData.filter(r => ov[cafeKey(r)]?.deleted);
+  const tbody = document.getElementById('deletedCafeList');
+  const section = document.getElementById('deletedCafeSection');
+  if (!tbody || !section) return;
+  if (deleted.length === 0) { section.style.display='none'; return; }
+  section.style.display = 'block';
+  tbody.innerHTML = deleted.map(r => {
+    const key = cafeKey(r);
+    return `<tr><td>${r.name}${r.branch?' ('+r.branch+')':''}</td><td>${r._origPerson}</td><td><button class="admin-mini-btn" onclick="window.restoreCafe('${key.replace(/'/g,"\\'")}')">복원</button></td></tr>`;
+  }).join('');
+}
+
+window.restoreCafe = async function(key) {
+  try {
+    await window._deleteDoc(window._doc(window._db, 'overrides', key));
+    delete window.overridesCache[key];
+    renderDeletedCafeList();
+    window.buildTabs();
+    window.buildStats();
+    window.render();
+  } catch(e) { alert('복원 오류: ' + e.message); }
+};
+
 /* ── 관리자 패널 ── */
 window.openAdminPanel = function() {
   document.getElementById('adminModal').classList.add('open');
   renderAdminUserList();
+  renderDeletedCafeList();
 };
 window.closeAdminModal = function() {
   document.getElementById('adminModal').classList.remove('open');
@@ -1200,10 +1322,12 @@ function buildSortButtons() {
 
 window.buildStats = function() {
   const wrap = document.getElementById("stats-row"); wrap.innerHTML="";
+  const allRows = getAllRows();
   ["하명수 형제","임형규 형제","오주명 형제","프랜차이즈"].forEach((p,i)=>{
     const color=["blue","teal","coral","purple"][i];
-    const total=(DATA[p]||[]).length;
-    const done=(DATA[p]||[]).filter(r=>!!reportsCache[cafeKey(r)]).length;
+    const pRows=allRows.filter(r=>r.person===p);
+    const total=pRows.length;
+    const done=pRows.filter(r=>!!reportsCache[cafeKey(r)]).length;
     const c=document.createElement("div"); c.className="stat-card";
     c.innerHTML=`<div class="stat-label">${p}</div><div class="stat-value ${color}">${total}</div><div style="font-size:11px;color:#aaa;margin-top:2px;">보고서 작성: ${done}건</div>`;
     wrap.appendChild(c);
@@ -1258,7 +1382,8 @@ window.render = function() {
       const visitBtn=`<button class="visit-toggle-btn ${isMyVisit?'active':''}" onclick='openVisitModal(${JSON.stringify(r)})'>${isMyVisit?'🚶 방문 중':'방문 참여'}</button>`;
       const personBadgeMobile=(isFranchise||isAll)?`<span class="person-badge person-${pk}">${r.person==="프랜차이즈"?(r.person_name||r.person):r.person}</span>`:"";
       const branchMobile=r.branch?`<span class="mobile-branch">(${r.branch})</span>`:"";
-      const mapUrl=`https://map.kakao.com/link/search/${encodeURIComponent(r.name+' '+r.addr)}`;
+      const mapUrl=`https://map.naver.com/v5/search/${encodeURIComponent(r.name+' '+r.addr)}`;
+      const ovBtn=`<button class="report-btn" onclick='window.openOverrideModal(${JSON.stringify(r)})' title="구역 변경 / 폐업 삭제" style="border-color:#c5c1f5;color:#534AB7;">🔄 구역</button>`;
       let html=`<tr class="${isExpanded?'accordion-open':''}">
         <td data-label="번호"><span class="no-badge">${r.no}</span></td>
         <td data-label="상호명">
@@ -1278,6 +1403,7 @@ window.render = function() {
         <td data-label="보고서">
           <button class="report-btn ${hasReport?'has-data':''}" onclick='openReport(${JSON.stringify(r)})'>${hasReport?"📝 수정":"📋 작성"}</button>
           ${visitBtn}
+          ${ovBtn}
           <a class="map-link mobile-map-link" href="${mapUrl}" target="_blank">지도 →</a>
         </td>
       </tr>`;
