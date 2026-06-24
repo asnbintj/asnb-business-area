@@ -522,15 +522,28 @@ tr.accordion-open { background: #eef3fb !important; }
     </div>
   </div>
   <div id="map-panel" style="display:none;">
-    <div style="padding:10px 0 8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+    <div style="padding:10px 0 6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
       <button class="map-ctrl-btn active" id="btnBoundary" onclick="window.toggleMapBoundary()">🗺 구역 경계 ON</button>
       <button class="map-ctrl-btn" onclick="window.fitMapAll()">전체 보기</button>
+      <button class="map-ctrl-btn" id="btnMyLoc" onclick="window.showMyLocation()">📍 내 위치</button>
+      <button class="map-ctrl-btn" onclick="window.openDrawPanel()">✏️ 구역 편집</button>
       <span style="font-size:12px;color:#888;" id="mapGeoStatus"></span>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-left:auto;">
-        <span style="display:flex;align-items:center;gap:5px;font-size:12px;"><span style="width:10px;height:10px;border-radius:50%;background:#185FA5;display:inline-block;"></span>하명수</span>
-        <span style="display:flex;align-items:center;gap:5px;font-size:12px;"><span style="width:10px;height:10px;border-radius:50%;background:#0F6E56;display:inline-block;"></span>임형규</span>
-        <span style="display:flex;align-items:center;gap:5px;font-size:12px;"><span style="width:10px;height:10px;border-radius:50%;background:#993C1D;display:inline-block;"></span>오주명</span>
-        <span style="display:flex;align-items:center;gap:5px;font-size:12px;"><span style="width:10px;height:10px;border-radius:50%;background:#7F77DD;display:inline-block;"></span>프랜차이즈</span>
+    </div>
+    <div style="padding:2px 0 8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+      <span style="font-size:12px;color:#888;white-space:nowrap;">담당자 표시:</span>
+      <div id="mapVisToggles" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+    </div>
+    <div id="drawSubPanel" style="display:none;background:#fff8e7;border:1.5px solid #f59e0b;border-radius:10px;padding:10px 14px;margin-bottom:8px;">
+      <div style="display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:12px;font-weight:600;color:#92400e;margin-bottom:8px;" id="drawStatusText">편집할 담당자를 선택하세요</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;" id="drawPersonBtns"></div>
+        </div>
+        <div style="display:flex;gap:5px;flex-shrink:0;margin-top:2px;flex-wrap:wrap;">
+          <button class="map-ctrl-btn" onclick="window.undoLastPt()">↩ 되돌리기</button>
+          <button class="map-ctrl-btn" onclick="window.finishZoneDraw()" style="background:#2563a8;border-color:#2563a8;color:#fff;">✓ 완료</button>
+          <button class="map-ctrl-btn" onclick="window.cancelZoneDraw()">✕ 취소</button>
+        </div>
       </div>
     </div>
     <div id="naverMap"></div>
@@ -1647,6 +1660,10 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape')window.closeReport(
 /* ═══════════════ 네이버 지도 ═══════════════ */
 const _MC={'하명수 형제':'#185FA5','임형규 형제':'#0F6E56','오주명 형제':'#993C1D','프랜차이즈':'#7F77DD'};
 let _nvm=null,_nmk=[],_npoly=[],_niw=null,_nsb=true,_gc=null;
+let _myLocMk=null;
+let _pv={'하명수 형제':true,'임형규 형제':true,'오주명 형제':true,'프랜차이즈':true};
+let _drawMode=false,_drawPerson=null,_drawPts=[],_drawPolyPrev=null,_drawTmpMks=[],_drawCL=null;
+let _zbc=null;
 
 function _lgc(){if(_gc)return;try{_gc=JSON.parse(localStorage.getItem('anseong_geo_v1')||'{}')}catch(e){_gc={};}}
 function _sgc(){try{localStorage.setItem('anseong_geo_v1',JSON.stringify(_gc))}catch(e){}}
@@ -1693,12 +1710,41 @@ function _exph(hull,d=0.003){
   return hull.map(p=>{const dx=p.x-cx,dy=p.y-cy,n=Math.sqrt(dx*dx+dy*dy)||1;return{...p,x:p.x+dx/n*d,y:p.y+dy/n*d};});
 }
 
-function _clnv(){_nmk.forEach(m=>m.setMap(null));_nmk=[];_npoly.forEach(p=>p.setMap(null));_npoly=[];if(_niw){_niw.close();_niw=null;}}
+function _clnv(){
+  _nmk.forEach(m=>m.marker.setMap(null));_nmk=[];
+  _npoly.forEach(p=>p.poly.setMap(null));_npoly=[];
+  if(_niw){_niw.close();_niw=null;}
+}
 
 function _invm(){
   if(_nvm)return;
   _nvm=new naver.maps.Map('naverMap',{center:new naver.maps.LatLng(37.0083,127.2698),zoom:13,mapTypeControl:true,scaleControl:true});
 }
+
+async function _loadZbc(){
+  if(_zbc)return;
+  _zbc={};
+  try{
+    const snap=await window._getDocs(window._collection(window._db,'zoneBoundaries'));
+    snap.forEach(d=>{_zbc[d.id]=d.data();});
+  }catch(e){console.error('loadZoneBounds',e);}
+}
+
+function _renderVisToggles(){
+  const wrap=document.getElementById('mapVisToggles');
+  if(!wrap)return;
+  wrap.innerHTML=Object.entries(_MC).map(([person,color])=>{
+    const on=_pv[person]!==false;
+    return `<button class="map-ctrl-btn" onclick="window.togglePersonVis('${person}')" style="${on?`background:${color};border-color:${color};color:#fff;`:'color:#aaa;'}">${person.replace(' 형제','')}</button>`;
+  }).join('');
+}
+
+window.togglePersonVis=function(person){
+  _pv[person]=!(_pv[person]!==false);
+  _nmk.forEach(m=>{if(m.person===person)m.marker.setMap(_pv[person]?_nvm:null);});
+  _npoly.forEach(p=>{if(p.person===person)p.poly.setMap(_pv[person]&&_nsb?_nvm:null);});
+  _renderVisToggles();
+};
 
 window.renderMapView=async function(){
   if(typeof naver==='undefined'||!naver.maps){
@@ -1708,6 +1754,7 @@ window.renderMapView=async function(){
   _invm();
   const stEl=document.getElementById('mapGeoStatus');
   _clnv();
+  await _loadZbc();
   const rows=getAllRows();
   _lgc();
   const need=rows.filter(r=>!_gc[r.addr]).length;
@@ -1716,14 +1763,21 @@ window.renderMapView=async function(){
   stEl.textContent=`${wp.filter(r=>r._pt).length}/${rows.length}개 표시`;
 
   const grp={};
-  wp.forEach(r=>{if(!r._pt)return;if(!grp[r.person])grp[r.person]=[];grp[r.person].push({x:r._pt.lng,y:r._pt.lat,row:r});});
+  wp.forEach(r=>{if(!r._pt)return;if(!grp[r.person])grp[r.person]=[];grp[r.person].push({x:r._pt.lng,y:r._pt.lat});});
 
   Object.entries(grp).forEach(([person,pts])=>{
-    if(pts.length<3)return;
-    const hull=_exph(_hull(pts));
     const color=_MC[person]||'#888';
-    const poly=new naver.maps.Polygon({map:_nsb?_nvm:null,paths:hull.map(p=>new naver.maps.LatLng(p.y,p.x)),fillColor:color,fillOpacity:0.1,strokeColor:color,strokeWeight:2.5,strokeOpacity:0.8,zIndex:1});
-    _npoly.push(poly);
+    let pathCoords;
+    if(_zbc[person]&&(_zbc[person].paths||[]).length>=3){
+      pathCoords=_zbc[person].paths.map(p=>new naver.maps.LatLng(p.lat,p.lng));
+    }else{
+      if(pts.length<3)return;
+      const hull=_exph(_hull(pts));
+      pathCoords=hull.map(p=>new naver.maps.LatLng(p.y,p.x));
+    }
+    const on=_pv[person]!==false;
+    const poly=new naver.maps.Polygon({map:on&&_nsb?_nvm:null,paths:pathCoords,fillColor:color,fillOpacity:0.1,strokeColor:color,strokeWeight:2.5,strokeOpacity:0.8,zIndex:1});
+    _npoly.push({poly,person});
   });
 
   const btnB=document.getElementById('btnBoundary');
@@ -1732,33 +1786,156 @@ window.renderMapView=async function(){
   wp.forEach(r=>{
     if(!r._pt)return;
     const color=_MC[r.person]||'#888';
+    const on=_pv[r.person]!==false;
+    const naverUrl=`https://map.naver.com/v5/search/${encodeURIComponent(r.name+' '+r.addr)}`;
     const mk=new naver.maps.Marker({
-      position:new naver.maps.LatLng(r._pt.lat,r._pt.lng),map:_nvm,
+      position:new naver.maps.LatLng(r._pt.lat,r._pt.lng),
+      map:on?_nvm:null,
       icon:{content:`<div style="width:13px;height:13px;background:${color};border-radius:50%;border:2px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,0.3);cursor:pointer;" title="${r.name}"></div>`,anchor:new naver.maps.Point(6,6)},
       zIndex:5
     });
     const iw=new naver.maps.InfoWindow({
-      content:`<div style="padding:10px 14px;font-family:'Noto Sans KR',sans-serif;min-width:180px;"><div style="font-weight:700;font-size:13px;margin-bottom:3px;">${r.name}${r.branch?' ('+r.branch+')':''}</div><div style="font-size:11px;color:#888;margin-bottom:5px;">${r.dong}</div><div style="font-size:11px;color:#555;line-height:1.5;">${(r.addr||'').replace('경기도 안성시 ','')}</div><div style="margin-top:7px;"><span style="font-size:10px;padding:2px 8px;border-radius:10px;background:${color}22;color:${color};font-weight:600;">${r.person}</span></div></div>`,
+      content:`<div style="padding:10px 14px;font-family:'Noto Sans KR',sans-serif;min-width:190px;max-width:240px;"><div style="font-weight:700;font-size:13px;margin-bottom:3px;">${r.name}${r.branch?' ('+r.branch+')':''}</div><div style="font-size:11px;color:#888;margin-bottom:4px;">${r.dong}</div><div style="font-size:11px;color:#555;line-height:1.5;margin-bottom:7px;">${(r.addr||'').replace('경기도 안성시 ','')}</div><div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><span style="font-size:10px;padding:2px 8px;border-radius:10px;background:${color}22;color:${color};font-weight:600;">${r.person}</span><a href="${naverUrl}" target="_blank" style="font-size:11px;color:#185FA5;text-decoration:none;font-weight:600;white-space:nowrap;">네이버 지도 →</a></div></div>`,
       borderWidth:1,borderColor:color,backgroundColor:'#fff'
     });
-    naver.maps.Event.addListener(mk,'click',()=>{if(_niw)_niw.close();iw.open(_nvm,mk);_niw=iw;});
-    _nmk.push(mk);
+    naver.maps.Event.addListener(mk,'click',()=>{
+      if(_drawMode)return;
+      if(_niw)_niw.close();iw.open(_nvm,mk);_niw=iw;
+    });
+    _nmk.push({marker:mk,person:r.person});
   });
 
   window.fitMapAll();
+  _renderVisToggles();
+};
+
+/* ── 내 위치 ── */
+window.showMyLocation=function(){
+  if(!navigator.geolocation){alert('이 브라우저에서는 위치 정보를 지원하지 않습니다.');return;}
+  const btn=document.getElementById('btnMyLoc');
+  if(btn)btn.textContent='📍 찾는 중...';
+  navigator.geolocation.getCurrentPosition(pos=>{
+    if(btn)btn.textContent='📍 내 위치';
+    if(!_nvm)return;
+    if(_myLocMk)_myLocMk.setMap(null);
+    _myLocMk=new naver.maps.Marker({
+      position:new naver.maps.LatLng(pos.coords.latitude,pos.coords.longitude),
+      map:_nvm,
+      icon:{content:`<div style="width:20px;height:20px;background:#007aff;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 5px rgba(0,122,255,0.25);"></div>`,anchor:new naver.maps.Point(10,10)},
+      zIndex:10
+    });
+    _nvm.panTo(new naver.maps.LatLng(pos.coords.latitude,pos.coords.longitude));
+  },err=>{
+    if(btn)btn.textContent='📍 내 위치';
+    alert('위치를 가져올 수 없습니다: '+err.message);
+  },{enableHighAccuracy:true,timeout:10000});
+};
+
+/* ── 구역 편집 ── */
+window.openDrawPanel=function(){
+  document.getElementById('drawSubPanel').style.display='block';
+  document.getElementById('drawStatusText').textContent='편집할 담당자 선택 후 지도를 클릭해 경계를 그리세요';
+  const btns=document.getElementById('drawPersonBtns');
+  btns.innerHTML=Object.entries(_MC).map(([person,color])=>
+    `<button class="map-ctrl-btn" onclick="window.startZoneDraw('${person}')" style="background:${color};color:#fff;border-color:${color};">${person.replace(' 형제','')}</button>` +
+    `<button class="map-ctrl-btn" onclick="window.resetZoneBound('${person}')" title="${person} 구역 초기화" style="border-color:${color};color:${color};font-size:10px;">↺ 초기화</button>`
+  ).join('');
+};
+
+window.startZoneDraw=function(person){
+  window.cancelZoneDraw();
+  _drawMode=true;_drawPerson=person;_drawPts=[];
+  document.getElementById('naverMap').style.cursor='crosshair';
+  document.getElementById('drawStatusText').textContent=`[${person.replace(' 형제','')}] 지도 클릭으로 꼭지점 추가 (최소 3개) · ✓완료로 저장`;
+  _drawCL=naver.maps.Event.addListener(_nvm,'click',function(e){
+    _drawPts.push(e.coord);
+    const color=_MC[_drawPerson]||'#888';
+    const vm=new naver.maps.Marker({
+      position:e.coord,map:_nvm,
+      icon:{content:`<div style="width:10px;height:10px;background:${color};border-radius:50%;border:2px solid #fff;"></div>`,anchor:new naver.maps.Point(5,5)},
+      zIndex:20
+    });
+    _drawTmpMks.push(vm);
+    if(_drawPolyPrev){_drawPolyPrev.setMap(null);_drawPolyPrev=null;}
+    if(_drawPts.length>=3){
+      _drawPolyPrev=new naver.maps.Polygon({map:_nvm,paths:_drawPts,fillColor:color,fillOpacity:0.2,strokeColor:color,strokeWeight:2.5,strokeOpacity:0.9,zIndex:15});
+    }
+    document.getElementById('drawStatusText').textContent=`[${_drawPerson.replace(' 형제','')}] ${_drawPts.length}개 꼭지점 추가됨 · ✓완료로 저장`;
+  });
+};
+
+window.undoLastPt=function(){
+  if(!_drawPts.length)return;
+  _drawPts.pop();
+  const m=_drawTmpMks.pop();if(m)m.setMap(null);
+  if(_drawPolyPrev){_drawPolyPrev.setMap(null);_drawPolyPrev=null;}
+  if(_drawPts.length>=3){
+    const color=_MC[_drawPerson]||'#888';
+    _drawPolyPrev=new naver.maps.Polygon({map:_nvm,paths:_drawPts,fillColor:color,fillOpacity:0.2,strokeColor:color,strokeWeight:2.5,strokeOpacity:0.9,zIndex:15});
+  }
+  document.getElementById('drawStatusText').textContent=`[${(_drawPerson||'').replace(' 형제','')}] ${_drawPts.length}개 꼭지점 · ✓완료로 저장`;
+};
+
+window.cancelZoneDraw=function(){
+  _drawMode=false;_drawPerson=null;_drawPts=[];
+  if(_drawCL){naver.maps.Event.removeListener(_drawCL);_drawCL=null;}
+  if(_drawPolyPrev){_drawPolyPrev.setMap(null);_drawPolyPrev=null;}
+  _drawTmpMks.forEach(m=>m.setMap(null));_drawTmpMks=[];
+  document.getElementById('naverMap').style.cursor='';
+  document.getElementById('drawSubPanel').style.display='none';
+};
+
+window.finishZoneDraw=async function(){
+  if(!_drawPerson){alert('담당자를 먼저 선택하세요.');return;}
+  if(_drawPts.length<3){alert('최소 3개 이상의 꼭지점이 필요합니다.');return;}
+  const paths=_drawPts.map(p=>({lat:p.lat(),lng:p.lng()}));
+  try{
+    await window._setDoc(window._doc(window._db,'zoneBoundaries',_drawPerson),{paths});
+    if(!_zbc)_zbc={};
+    _zbc[_drawPerson]={paths};
+    const pn=_drawPerson;
+    window.cancelZoneDraw();
+    _npoly.forEach(p=>{if(p.person===pn)p.poly.setMap(null);});
+    _npoly=_npoly.filter(p=>p.person!==pn);
+    const color=_MC[pn]||'#888';
+    const on=_pv[pn]!==false;
+    const poly=new naver.maps.Polygon({map:on&&_nsb?_nvm:null,paths:paths.map(p=>new naver.maps.LatLng(p.lat,p.lng)),fillColor:color,fillOpacity:0.1,strokeColor:color,strokeWeight:2.5,strokeOpacity:0.8,zIndex:1});
+    _npoly.push({poly,person:pn});
+    alert(`[${pn}] 구역 경계가 저장되었습니다.`);
+  }catch(e){alert('저장 오류: '+e.message);}
+};
+
+window.resetZoneBound=async function(person){
+  if(!confirm(`[${person}] 구역 경계를 자동 계산으로 초기화하시겠습니까?`))return;
+  try{
+    await window._deleteDoc(window._doc(window._db,'zoneBoundaries',person));
+    if(_zbc)delete _zbc[person];
+    _npoly.forEach(p=>{if(p.person===person)p.poly.setMap(null);});
+    _npoly=_npoly.filter(p=>p.person!==person);
+    const pts=_nmk.filter(m=>m.person===person).map(m=>{const pos=m.marker.getPosition();return{x:pos.lng(),y:pos.lat()};});
+    if(pts.length>=3){
+      const hull=_exph(_hull(pts));
+      const color=_MC[person]||'#888';
+      const on=_pv[person]!==false;
+      const poly=new naver.maps.Polygon({map:on&&_nsb?_nvm:null,paths:hull.map(p=>new naver.maps.LatLng(p.y,p.x)),fillColor:color,fillOpacity:0.1,strokeColor:color,strokeWeight:2.5,strokeOpacity:0.8,zIndex:1});
+      _npoly.push({poly,person});
+    }
+    document.getElementById('drawSubPanel').style.display='none';
+    alert(`[${person}] 구역이 자동 계산으로 초기화되었습니다.`);
+  }catch(e){alert('오류: '+e.message);}
 };
 
 window.toggleMapBoundary=function(){
   _nsb=!_nsb;
   const btn=document.getElementById('btnBoundary');
   if(btn){btn.textContent=_nsb?'🗺 구역 경계 ON':'🗺 구역 경계 OFF';btn.classList.toggle('active',_nsb);}
-  _npoly.forEach(p=>p.setMap(_nsb?_nvm:null));
+  _npoly.forEach(p=>p.poly.setMap(_pv[p.person]!==false&&_nsb?_nvm:null));
 };
 
 window.fitMapAll=function(){
   if(!_nvm||!_nmk.length)return;
   const b=new naver.maps.LatLngBounds();
-  _nmk.forEach(m=>b.extend(m.getPosition()));
+  _nmk.forEach(m=>b.extend(m.marker.getPosition()));
   _nvm.fitBounds(b,{top:50,right:50,bottom:50,left:50});
 };
 </script>
