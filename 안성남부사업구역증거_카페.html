@@ -1,0 +1,1640 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>안성남부 사업구역 증거 - 카페 </title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<script type="text/javascript" src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=y4x7ubi7k9&submodules=geocoder"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Noto Sans KR', sans-serif; background: #f5f5f0; color: #1a1a1a; font-size: 14px; }
+
+/* ── 목록 화면 ── */
+.header { background: #fff; border-bottom: 1px solid #e0e0d8; padding: 20px 24px 0; position: sticky; top: 0; z-index: 100; }
+.header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.header-top h1 { font-size: 18px; font-weight: 700; }
+.total-badge { font-size: 12px; background: #f0ede8; color: #555; padding: 4px 10px; border-radius: 20px; }
+.search-bar input { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 13px; outline: none; background: #fafaf8; }
+.search-bar input:focus { border-color: #aaa; background: #fff; }
+.tabs { display: flex; gap: 0; margin-top: 14px; overflow-x: auto; }
+.tab-btn { flex-shrink: 0; padding: 10px 20px; font-size: 14px; font-family: inherit; font-weight: 500; border: none; background: none; cursor: pointer; color: #888; border-bottom: 2.5px solid transparent; transition: all 0.15s; }
+.tab-btn:hover { color: #333; }
+.tab-btn.active { color: #1a1a1a; border-bottom-color: #1a1a1a; }
+.tab-btn .count { display: inline-block; font-size: 11px; background: #efefeb; color: #666; border-radius: 10px; padding: 1px 7px; margin-left: 5px; font-weight: 400; }
+.tab-btn.active .count { background: #1a1a1a; color: #fff; }
+.tab-btn[data-person="하명수 형제"].active { color: #185FA5; border-bottom-color: #185FA5; }
+.tab-btn[data-person="하명수 형제"].active .count { background: #185FA5; }
+.tab-btn[data-person="임형규 형제"].active { color: #0F6E56; border-bottom-color: #0F6E56; }
+.tab-btn[data-person="임형규 형제"].active .count { background: #0F6E56; }
+.tab-btn[data-person="오주명 형제"].active { color: #993C1D; border-bottom-color: #993C1D; }
+.tab-btn[data-person="오주명 형제"].active .count { background: #993C1D; }
+.tab-btn[data-person="프랜차이즈"].active { color: #7F77DD; border-bottom-color: #7F77DD; }
+.tab-btn[data-person="프랜차이즈"].active .count { background: #7F77DD; }
+.tab-btn[data-person="내 방문 현황"].active { color: #16a34a; border-bottom-color: #16a34a; }
+.tab-btn[data-person="내 방문 현황"].active .count { background: #16a34a; }
+
+main { padding: 16px; max-width: 960px; margin: 0 auto; }
+.stats-row { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+.stat-card { flex: 1; min-width: 120px; background: #fff; border: 0.5px solid #e0e0d8; border-radius: 10px; padding: 12px 14px; cursor: default; }
+.stat-label { font-size: 11px; color: #888; margin-bottom: 4px; }
+.stat-value { font-size: 22px; font-weight: 700; }
+.stat-value.blue { color: #185FA5; } .stat-value.teal { color: #0F6E56; }
+.stat-value.coral { color: #993C1D; } .stat-value.purple { color: #7F77DD; }
+.filter-row { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }
+.filter-label { font-size: 12px; color: #888; }
+.filter-btn { font-size: 12px; padding: 4px 10px; border: 1px solid #ddd; border-radius: 20px; background: #fff; cursor: pointer; font-family: inherit; color: #555; transition: all 0.12s; }
+.filter-btn:hover { border-color: #aaa; color: #222; }
+.filter-btn.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+.sort-row { display: flex; gap: 6px; margin-bottom: 12px; align-items: center; flex-wrap: wrap; }
+.sort-label { font-size: 12px; color: #888; }
+.sort-btn { font-size: 12px; padding: 4px 10px; border: 1px solid #ddd; border-radius: 20px; background: #fff; cursor: pointer; font-family: inherit; color: #555; transition: all 0.12s; display: inline-flex; align-items: center; gap: 3px; }
+.sort-btn:hover { border-color: #aaa; color: #222; }
+.sort-btn.active { background: #2563a8; color: #fff; border-color: #2563a8; }
+.table-wrap { background: #fff; border: 0.5px solid #e0e0d8; border-radius: 12px; overflow: hidden; }
+table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+thead th { background: #fafaf8; font-size: 11px; font-weight: 500; color: #888; padding: 10px 14px; text-align: left; border-bottom: 1px solid #ececea; }
+tbody tr { border-bottom: 0.5px solid #f0f0ed; transition: background 0.1s; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: #fafaf8; }
+td { padding: 10px 14px; vertical-align: middle; }
+.cafe-name { font-weight: 500; font-size: 13px; color: #1a1a1a; }
+.branch-tag { font-size: 11px; color: #888; }
+.no-badge { display: inline-block; font-size: 11px; color: #999; background: #f5f5f2; border-radius: 4px; padding: 1px 6px; }
+.type-tag { font-size: 11px; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+.type-coffee { background: #E6F1FB; color: #185FA5; } .type-other { background: #EAF3DE; color: #3B6D11; }
+.dong-text { font-size: 12px; color: #666; }
+.addr-text { font-size: 12px; color: #555; line-height: 1.5; word-break: keep-all; }
+.map-link { font-size: 12px; color: #185FA5; text-decoration: none; display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
+.map-link:hover { text-decoration: underline; }
+.person-badge { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 500; white-space: nowrap; }
+.person-하명수 { background: #E6F1FB; color: #185FA5; } .person-임형규 { background: #E1F5EE; color: #0F6E56; }
+.person-오주명 { background: #FAECE7; color: #993C1D; } .person-기타 { background: #EEEDFE; color: #534AB7; }
+.empty { text-align: center; padding: 48px 16px; color: #aaa; font-size: 14px; }
+.count-row { padding: 10px 14px; font-size: 12px; color: #888; background: #fafaf8; border-top: 0.5px solid #ececea; }
+
+/* 보고서 버튼 */
+.report-btn { font-size: 11px; padding: 4px 10px; border: 1px solid #ddd; border-radius: 6px; background: #fff; cursor: pointer; font-family: inherit; color: #555; white-space: nowrap; transition: all 0.12s; display: inline-flex; align-items: center; gap: 4px; }
+.report-btn:hover { background: #f0f0ed; border-color: #aaa; }
+.report-btn.has-data { border-color: #2563a8; color: #2563a8; background: #EEF5FF; }
+.report-btn.has-data:hover { background: #ddeeff; }
+
+/* ── 인라인 아코디언 ── */
+.accordion-row > td { padding: 0 !important; border-bottom: 2px solid #2563a8 !important; }
+.accordion-panel { background: #fff; border-top: 3px solid #2563a8; }
+.accordion-panel .rp-header { border-radius: 0; }
+tr.accordion-open { background: #eef3fb !important; }
+
+/* ── 방문 중 배지 & 버튼 ── */
+.visiting-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; padding: 1px 7px; border-radius: 10px; font-weight: 600; background: #dcfce7; color: #16a34a; margin-left: 6px; vertical-align: middle; }
+.visit-toggle-btn { font-size: 11px; padding: 3px 8px; border-radius: 6px; border: 1px solid #ddd; background: #fff; cursor: pointer; font-family: inherit; color: #888; white-space: nowrap; transition: all 0.12s; display: inline-flex; align-items: center; gap: 3px; margin-top: 4px; }
+.visit-toggle-btn:hover:not(.other) { border-color: #16a34a; color: #16a34a; }
+.visit-toggle-btn.active { background: #dcfce7; border-color: #16a34a; color: #16a34a; font-weight: 600; }
+.visit-toggle-btn.other { background: #f0f4f8; border-color: #bbb; color: #666; cursor: default; pointer-events: none; }
+
+/* ── 보고서 패널 ── */
+.report-panel {
+  max-width: 800px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+}
+.rp-header {
+  background: linear-gradient(135deg, #1a3a5c 0%, #2563a8 100%);
+  color: #fff;
+  padding: 20px 24px 16px;
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+}
+.rp-header-text h2 { font-size: 1.1rem; font-weight: 700; letter-spacing: 0.03em; }
+.rp-header-text p { font-size: 0.8rem; opacity: 0.75; margin-top: 4px; }
+.rp-close { background: rgba(255,255,255,0.18); border: none; color: #fff; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.15s; }
+.rp-close:hover { background: rgba(255,255,255,0.32); }
+.rp-body { padding: 24px 28px 32px; }
+
+/* 섹션 */
+.rp-section { margin-bottom: 24px; }
+.rp-section-title {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 0.88rem; font-weight: 700; color: #1a3a5c;
+  background: #eef3fb; border-left: 4px solid #2563a8;
+  padding: 7px 14px; border-radius: 0 6px 6px 0;
+  margin-bottom: 12px; letter-spacing: 0.02em;
+}
+.rp-grid { display: grid; gap: 10px; }
+.rp-grid-2 { grid-template-columns: 1fr 1fr; }
+.rp-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+@media (max-width: 540px) { .rp-grid-2, .rp-grid-3 { grid-template-columns: 1fr; } }
+.rp-field { display: flex; flex-direction: column; gap: 4px; }
+.rp-field label { font-size: 0.76rem; font-weight: 600; color: #4a5568; letter-spacing: 0.02em; }
+.rp-field input[type="text"],
+.rp-field input[type="date"],
+.rp-field textarea {
+  border: 1.5px solid #cbd5e0; border-radius: 6px;
+  padding: 7px 10px; font-size: 0.86rem;
+  font-family: 'Noto Sans KR', sans-serif; color: #1a202c;
+  background: #f8fafc; outline: none; width: 100%;
+  transition: border-color 0.15s;
+}
+.rp-field input:focus, .rp-field textarea:focus { border-color: #2563a8; background: #fff; box-shadow: 0 0 0 3px rgba(37,99,168,0.09); }
+.rp-field textarea { resize: vertical; min-height: 68px; }
+.cb-group { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 2px; }
+.cb-group label { display: flex; align-items: center; gap: 5px; font-size: 0.84rem; color: #2d3748; cursor: pointer; white-space: nowrap; }
+.cb-group input[type="checkbox"], .cb-group input[type="radio"] { accent-color: #2563a8; width: 14px; height: 14px; cursor: pointer; }
+.inline-other { display: flex; align-items: center; gap: 5px; font-size: 0.84rem; color: #2d3748; }
+.inline-other input[type="text"] { border: none; border-bottom: 1.5px solid #a0aec0; border-radius: 0; padding: 2px 6px; font-size: 0.84rem; background: transparent; width: 100px; font-family: inherit; outline: none; }
+.inline-other input[type="text"]:focus { border-bottom-color: #2563a8; }
+/* 방문 기록 테이블 */
+.visit-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+.visit-table th { background: #eef3fb; color: #1a3a5c; font-weight: 700; padding: 8px; border: 1.5px solid #d1dce8; text-align: center; font-size: 0.8rem; }
+.visit-table td { border: 1.5px solid #d1dce8; padding: 5px 6px; vertical-align: middle; }
+.visit-table td input[type="date"], .visit-table td input[type="text"] { border: none; background: transparent; width: 100%; font-size: 0.8rem; font-family: 'Noto Sans KR', sans-serif; color: #1a202c; padding: 2px 4px; outline: none; }
+.visit-table td input:focus { background: #eef3fb; border-radius: 3px; }
+.result-checks { display: flex; flex-wrap: wrap; gap: 3px 8px; padding: 2px 4px; }
+.result-checks label { display: flex; align-items: center; gap: 3px; font-size: 0.76rem; cursor: pointer; white-space: nowrap; }
+.result-checks input[type="checkbox"] { accent-color: #2563a8; width: 12px; height: 12px; }
+/* 버튼 */
+.rp-actions { display: flex; gap: 10px; justify-content: center; margin-top: 24px; flex-wrap: wrap; }
+.rp-btn { padding: 9px 24px; border-radius: 7px; font-size: 0.88rem; font-weight: 600; cursor: pointer; font-family: inherit; border: none; letter-spacing: 0.02em; transition: background 0.15s; }
+.rp-btn-primary { background: #2563a8; color: #fff; }
+.rp-btn-primary:hover { background: #1a4a8a; }
+.rp-btn-secondary { background: #e2e8f0; color: #2d3748; }
+.rp-btn-secondary:hover { background: #cbd5e0; }
+.rp-btn-success { background: #2d7d46; color: #fff; }
+.rp-btn-success:hover { background: #246138; }
+.rp-save-msg { display: none; text-align: center; color: #2d7d46; font-size: 0.85rem; font-weight: 600; margin-top: 8px; }
+.rp-divider { border: none; border-top: 1.5px solid #e2e8f0; margin: 4px 0 14px; }
+/* 영업시간 C방식 */
+.biz-default-row { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+.biz-default-row input { border: 1.5px solid #cbd5e0; border-radius: 6px; padding: 6px 10px; font-size: 13px; font-family: inherit; background: #f8fafc; outline: none; width: 82px; text-align: center; letter-spacing: 1px; }
+.biz-default-row input:focus { border-color: #2563a8; background: #fff; }
+.biz-default-row .biz-sep { color: #aaa; font-size: 13px; }
+.biz-c-table { width: 100%; border-collapse: collapse; }
+.biz-c-table td { padding: 5px 6px; vertical-align: middle; }
+.biz-c-table td:first-child { width: 36px; }
+.biz-c-day-btn { width: 32px; height: 32px; border-radius: 50%; border: none; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+.biz-c-day-btn.open { background: #2563a8; color: #fff; }
+.biz-c-day-btn.closed { background: #e5e7eb; color: #9ca3af; }
+.biz-c-time-wrap { display: flex; align-items: center; gap: 6px; }
+.biz-c-time-wrap input { border: 1.5px solid #cbd5e0; border-radius: 5px; padding: 5px 8px; font-size: 13px; font-family: inherit; background: #f8fafc; outline: none; width: 80px; text-align: center; }
+.biz-c-time-wrap input:focus { border-color: #2563a8; background: #fff; }
+.biz-c-time-wrap input:disabled { background: #f0f0ed; color: #bbb; }
+.biz-c-time-wrap .biz-sep { color: #aaa; }
+.biz-c-hint { font-size: 11px; color: #bbb; margin-left: 4px; }
+
+/* ── 날짜 선택 버튼 (방문 기록 테이블) ── */
+.date-wrap { position: relative; display: inline-flex; align-items: center; gap: 4px; background: #eef3ff; border: 1.5px solid #c7d7f5; border-radius: 6px; padding: 5px 8px; cursor: pointer; min-width: 80px; }
+.date-icon { font-size: 13px; line-height: 1; }
+.date-text { font-size: 11px; color: #2563a8; font-weight: 500; white-space: nowrap; }
+.date-pick-input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+
+/* ── 결과 드롭다운 ── */
+.result-select { border: 1.5px solid #cbd5e0; border-radius: 5px; padding: 5px 4px; font-size: 12px; font-family: 'Noto Sans KR', sans-serif; background: #f8fafc; color: #1a202c; cursor: pointer; width: 100%; outline: none; }
+.result-select:focus { border-color: #2563a8; background: #fff; }
+
+/* ── 사용법 안내 패널 ── */
+.help-wrap { max-width: 680px; margin: 0 auto; padding: 16px 0 40px; }
+.help-section-title { text-align: center; font-size: 17px; font-weight: 700; color: #1a3a5c; padding: 18px 0 16px; letter-spacing: 0.02em; }
+.help-block { background: #fff; border-radius: 12px; border: 1px solid #e0e0d8; padding: 16px 18px; margin-bottom: 10px; }
+.help-block-title { font-size: 14px; font-weight: 700; color: #1a3a5c; margin-bottom: 8px; }
+.help-block p { font-size: 13px; color: #444; line-height: 1.7; margin-bottom: 5px; }
+.help-block ul, .help-block ol { margin: 4px 0 4px 18px; }
+.help-block li { font-size: 13px; color: #444; line-height: 1.7; margin-bottom: 3px; }
+
+/* ── 모바일 카드 전용 요소 ── */
+.mobile-meta-row { display: none; flex-wrap: wrap; gap: 4px; align-items: center; margin-top: 5px; }
+.mobile-addr { display: none; font-size: 11px; color: #888; margin-top: 3px; line-height: 1.4; }
+.mobile-map-link { display: none !important; }
+.mobile-branch { display: none; font-size: 12px; color: #888; margin-left: 2px; }
+
+/* ── 모바일 반응형 (≤ 680px) ── */
+@media (max-width: 680px) {
+  main { padding: 10px; }
+  .stats-row { gap: 6px; flex-wrap: wrap; }
+  .stat-value { font-size: 18px; }
+  .filter-row { gap: 5px; flex-wrap: wrap; }
+  .filter-btn { font-size: 11px; padding: 3px 8px; }
+  .tab-btn { padding: 8px 12px; font-size: 13px; }
+  .search-bar input { font-size: 13px; }
+  .header { padding: 14px 14px 0; }
+  .header-top h1 { font-size: 15px; }
+  .total-badge, .user-info { font-size: 11px; }
+  .count-row { font-size: 12px; padding: 6px 12px; }
+
+  /* 테이블 → 카드 변환 (메인 테이블만 대상, 중첩 테이블 제외) */
+  .table-wrap { background: transparent; border: none; border-radius: 0; box-shadow: none; overflow: visible; padding: 0; }
+  .table-wrap > table { display: block; }
+  #thead { display: none !important; }
+  #tbody { display: flex; flex-direction: column; gap: 8px; }
+
+  #tbody > tr {
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border: 1px solid #e0e0d8;
+    border-radius: 12px;
+    padding: 12px 14px;
+  }
+  #tbody > tr:last-child { border: 1px solid #e0e0d8; }
+  #tbody > tr.accordion-open { border-color: #2563a8; border-width: 2px; }
+  #tbody > tr > td { display: none; padding: 0; border: none !important; }
+
+  /* 카드에서 표시할 셀 */
+  #tbody > tr > td[data-label="상호명"] { display: block; font-size: 15px; font-weight: 600; }
+  .mobile-meta-row { display: flex; }
+  .mobile-addr { display: block; }
+  #tbody > tr > td[data-label="보고서"] {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid #f0f0ed !important;
+  }
+  .mobile-map-link { display: inline-flex !important; font-size: 12px; align-items: center; }
+  .mobile-branch { display: inline; }
+
+  /* 아코디언 행 */
+  #tbody > tr.accordion-row {
+    background: transparent;
+    border: none !important;
+    border-radius: 0;
+    padding: 0;
+    margin-top: -4px;
+  }
+  #tbody > tr.accordion-row > td {
+    display: block !important;
+    padding: 0;
+  }
+
+  /* 아코디언 내 폼 테이블 (biz-c-table, visit-table) 모바일 보정 */
+  .biz-c-table { table-layout: auto; }
+  .biz-c-time-wrap input { width: 68px; font-size: 12px; padding: 4px 6px; }
+  .biz-default-row { flex-wrap: wrap; gap: 6px; }
+  .biz-default-row input { width: 74px; }
+
+  /* 보고서 폼 모바일 */
+  .rp-header { padding: 14px 16px 12px; }
+  .rp-header-text h2 { font-size: 1rem; }
+  .rp-body { padding: 14px !important; }
+  .rp-grid-2 { grid-template-columns: 1fr !important; }
+  .biz-c-hint { display: none; }
+  .visit-table { font-size: 0.75rem; }
+  .visit-table th, .visit-table td { padding: 4px 3px; }
+  .rp-actions { gap: 6px; flex-wrap: wrap; }
+
+  /* 통계 카드 – 작은 화면에서 2줄로 정렬 */
+  .stat-card { min-width: 85px; flex: 1; padding: 10px; }
+  .stat-label { font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* 버튼 */
+  .report-btn { font-size: 12px; padding: 6px 12px; }
+  .visit-toggle-btn { font-size: 12px; padding: 6px 10px; margin-top: 0; }
+}
+
+@media print {
+  .header, .stats-row, .filter-row, .table-wrap, .count-row, .rp-actions, .rp-close, .visit-toggle-btn, .report-btn { display: none !important; }
+  .accordion-panel { box-shadow: none; border-top: none; }
+}
+
+/* ── 로그인 화면 ── */
+#loginScreen {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh; background: #f0ede8;
+}
+.login-card {
+  background: #fff; border-radius: 20px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.12);
+  padding: 52px 44px; width: 100%; max-width: 440px;
+  text-align: center;
+}
+.login-logo { margin-bottom: 32px; }
+.login-logo .logo-icon { font-size: 52px; display: block; margin-bottom: 14px; }
+.login-logo h1 { font-size: 22px; font-weight: 700; color: #1a1a1a; margin-bottom: 8px; }
+.login-logo p { font-size: 13px; color: #999; }
+.login-field { margin-bottom: 14px; text-align: left; }
+.login-field label { display: block; font-size: 12px; color: #888; margin-bottom: 6px; font-weight: 500; }
+.login-field input {
+  width: 100%; padding: 12px 14px;
+  border: 1px solid #ddd; border-radius: 10px;
+  font-size: 15px; font-family: 'Noto Sans KR', sans-serif;
+  outline: none; color: #1a1a1a; background: #fafaf8;
+  transition: border-color 0.15s;
+}
+.login-field input:focus { border-color: #2563a8; background: #fff; }
+.login-btn {
+  width: 100%; padding: 14px 20px;
+  background: #2563a8; color: #fff;
+  border: none; border-radius: 12px;
+  font-size: 16px; font-weight: 700;
+  font-family: 'Noto Sans KR', sans-serif;
+  cursor: pointer; margin-top: 4px;
+  transition: background 0.15s, transform 0.1s;
+}
+.login-btn:hover { background: #1a4f8a; }
+.login-btn:active { transform: scale(0.98); }
+.login-error { color: #c0392b; font-size: 13px; text-align: center; margin-top: 12px; min-height: 20px; font-weight: 500; }
+
+/* 로그인 사용자 표시 */
+.user-info { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #666; }
+.user-info .user-email { max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.logout-btn { font-size: 11px; padding: 3px 10px; border: 1px solid #ddd; border-radius: 12px; background: #fff; cursor: pointer; color: #888; font-family: inherit; }
+.logout-btn:hover { background: #f5f5f0; color: #333; }
+
+/* 로딩 */
+.loading-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.9); display: flex; align-items: center; justify-content: center; z-index: 9999; font-size: 14px; color: #555; flex-direction: column; gap: 12px; }
+.spinner { width: 36px; height: 36px; border: 3px solid #e0e0d8; border-top-color: #FEE500; border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── 관리자 / 비밀번호 변경 모달 ── */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: none; align-items: center; justify-content: center; z-index: 5000; padding: 16px; }
+.modal-overlay.open { display: flex; }
+.modal-box { background: #fff; border-radius: 16px; width: 100%; max-width: 560px; box-shadow: 0 12px 48px rgba(0,0,0,0.22); overflow: hidden; max-height: 90vh; display: flex; flex-direction: column; }
+.modal-header { background: linear-gradient(135deg, #1a3a5c 0%, #2563a8 100%); color: #fff; padding: 18px 22px; display: flex; align-items: center; justify-content: space-between; }
+.modal-header h3 { font-size: 15px; font-weight: 700; }
+.modal-close { background: rgba(255,255,255,0.2); border: none; color: #fff; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+.modal-close:hover { background: rgba(255,255,255,0.35); }
+.modal-body { padding: 20px 22px; overflow-y: auto; }
+.modal-field { margin-bottom: 14px; }
+.modal-field label { display: block; font-size: 12px; color: #666; font-weight: 600; margin-bottom: 5px; }
+.modal-field input { width: 100%; padding: 9px 12px; border: 1.5px solid #ddd; border-radius: 8px; font-size: 14px; font-family: inherit; outline: none; }
+.modal-field input:focus { border-color: #2563a8; }
+.modal-error { color: #dc2626; font-size: 12px; margin-top: 8px; min-height: 18px; font-weight: 500; }
+.modal-btn-row { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; }
+.modal-btn { padding: 9px 20px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; border: none; }
+.modal-btn-primary { background: #2563a8; color: #fff; }
+.modal-btn-primary:hover { background: #1a4a8a; }
+.modal-btn-secondary { background: #e2e8f0; color: #2d3748; }
+.modal-btn-secondary:hover { background: #cbd5e0; }
+.admin-section { margin-bottom: 20px; }
+.admin-section-title { font-size: 13px; font-weight: 700; color: #1a3a5c; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1.5px solid #e0e0d8; }
+.admin-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.admin-table th { background: #f5f5f0; color: #666; font-weight: 600; font-size: 11px; padding: 8px 10px; text-align: left; border-bottom: 1px solid #e0e0d8; }
+.admin-table td { padding: 8px 10px; border-bottom: 0.5px solid #f0f0ed; vertical-align: middle; }
+.admin-table tr:last-child td { border-bottom: none; }
+.admin-mini-btn { font-size: 11px; padding: 3px 8px; border: 1px solid #ddd; border-radius: 5px; cursor: pointer; background: #fff; font-family: inherit; color: #444; white-space: nowrap; }
+.admin-mini-btn:hover { background: #f5f5f0; }
+.admin-mini-btn.danger { border-color: #fca5a5; color: #dc2626; }
+.admin-mini-btn.danger:hover { background: #fef2f2; }
+.admin-add-row { display: flex; gap: 8px; align-items: flex-end; }
+.admin-add-row input { flex: 1; padding: 8px 10px; border: 1.5px solid #ddd; border-radius: 7px; font-size: 13px; font-family: inherit; outline: none; }
+.admin-add-row input:focus { border-color: #2563a8; }
+.admin-btn { background: #2563a8; color: #fff; border: none; padding: 8px 14px; border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; white-space: nowrap; }
+.admin-btn:hover { background: #1a4a8a; }
+.admin-btn-header { display: none; font-size: 12px; padding: 4px 10px; border: 1.5px solid #7F77DD; color: #7F77DD; background: #fff; border-radius: 12px; cursor: pointer; font-family: inherit; font-weight: 600; align-items: center; gap: 4px; }
+.admin-btn-header:hover { background: #f3f2ff; }
+.changepw-btn { font-size: 11px; padding: 3px 10px; border: 1px solid #ddd; border-radius: 12px; background: #fff; cursor: pointer; color: #555; font-family: inherit; }
+.changepw-btn:hover { background: #f5f5f0; color: #333; }
+.visit-user-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 4px 0 6px; }
+.visit-user-label { display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; padding: 8px 12px; border-radius: 8px; border: 1.5px solid #e0e0d8; transition: all 0.12s; user-select: none; }
+.visit-user-label:hover { border-color: #16a34a; background: #f0fdf4; }
+.visit-user-label.checked { border-color: #16a34a; background: #f0fdf4; font-weight: 600; color: #16a34a; }
+.visit-user-label input { accent-color: #16a34a; width: 16px; height: 16px; cursor: pointer; }
+
+/* ── 지도 패널 ── */
+.map-ctrl-btn { font-size: 12px; padding: 5px 12px; border: 1.5px solid #ddd; border-radius: 20px; background: #fff; cursor: pointer; font-family: inherit; color: #555; transition: all 0.12s; white-space: nowrap; }
+.map-ctrl-btn:hover { border-color: #aaa; color: #222; }
+.map-ctrl-btn.active { background: #2563a8; color: #fff; border-color: #2563a8; }
+#naverMap { width: 100%; height: calc(100vh - 160px); min-height: 480px; border-radius: 12px; border: 1px solid #e0e0d8; }
+</style>
+</head>
+<body>
+<!-- 로딩 -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <span>불러오는 중...</span>
+</div>
+
+<!-- 로그인 화면 -->
+<div id="loginScreen" style="display:none;">
+  <div class="login-card">
+    <div class="login-logo">
+      <span class="logo-icon"> 💼 </span>
+      <h1>안성남부 사업구역증거 시스템</h1>
+      <p>구역 - 카페</p>
+    </div>
+    <div class="login-field">
+      <label>이름</label>
+      <input type="text" id="loginName" placeholder="이름을 입력하세요" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('loginPw').focus()">
+    </div>
+    <div class="login-field">
+      <label>비밀번호</label>
+      <input type="password" id="loginPw" placeholder="비밀번호를 입력하세요" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="login-btn" onclick="doLogin()">로그인</button>
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
+
+<!-- 메인 앱 (로그인 후 표시) -->
+<div id="appScreen" style="display:none;">
+
+<!-- 목록 헤더 -->
+<div class="header">
+  <div class="header-top">
+    <h1>안성 남부 카페 구역</h1>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span class="total-badge" id="total-badge">전체 0개</span>
+      <div class="user-info">
+        <button class="admin-btn-header" id="adminBtn" onclick="openAdminPanel()" style="display:none;">⚙️ 관리자</button>
+        <span class="user-email" id="userEmail"></span>
+        <button class="changepw-btn" onclick="openChangePw()">🔑 비번 변경</button>
+        <button class="logout-btn" onclick="doLogout()">로그아웃</button>
+      </div>
+    </div>
+  </div>
+  <div class="search-bar">
+    <input type="text" id="search" placeholder="상호명, 주소, 동 검색…" oninput="render()">
+  </div>
+  <div class="tabs" id="tabs"></div>
+</div>
+
+<main>
+  <div id="help-panel" style="display:none;">
+    <div class="help-wrap">
+      <div class="help-section-title">📱 안성 남부 카페 구역 · 사용 안내</div>
+      <div class="help-block">
+        <div class="help-block-title">🔐 로그인 방법</div>
+        <p>등록된 이름과 비밀번호(기본: 0000)를 입력해 로그인합니다.</p>
+        <p>로그인 후 본인 이름으로 방문 표시와 보고서가 저장됩니다.</p>
+      </div>
+      <div class="help-block">
+        <div class="help-block-title">📋 탭 구분</div>
+        <ul>
+          <li><b>전체</b> – 안성 남부 전체 카페 목록</li>
+          <li><b>하명수 / 임형규 / 오주명 형제</b> – 각 담당자별 카페</li>
+          <li><b>프랜차이즈</b> – 프랜차이즈 카페 목록</li>
+        </ul>
+      </div>
+      <div class="help-block">
+        <div class="help-block-title">🔍 검색 &amp; 필터</div>
+        <p>상단 검색창에 상호명·주소·동 이름을 입력하면 실시간으로 필터링됩니다.</p>
+        <p>탭 아래 <b>동/면 버튼</b>을 누르면 해당 지역 카페만 표시됩니다.</p>
+      </div>
+      <div class="help-block">
+        <div class="help-block-title">📊 통계 카드</div>
+        <p>화면 상단 카드에는 담당자별 카페 수와 보고서 작성 건수가 표시됩니다.</p>
+        <p><b>방문 현황</b> 카드는 현재 방문 중인 카페 수를 실시간으로 보여줍니다.</p>
+      </div>
+      <div class="help-block">
+        <div class="help-block-title">🚶 방문 참여 기능</div>
+        <p><b>방문 참여</b> 버튼을 누르면 방문 중 표시가 됩니다. 목록에 이름 배지가 나타나고 통계가 업데이트됩니다.</p>
+        <p>방문을 마치면 <b>🚶 방문 중</b> 버튼을 다시 눌러 해제하세요.</p>
+        <p>여러 명이 동시에 참여하면 모든 이름이 함께 표시됩니다.</p>
+      </div>
+      <div class="help-block">
+        <div class="help-block-title">📝 보고서 작성 순서</div>
+        <ol>
+          <li>카페 카드에서 <b>📋 작성</b> 버튼을 누릅니다.</li>
+          <li>펼쳐지는 폼에 내용을 작성합니다.</li>
+          <li><b>💾 저장</b> 버튼을 눌러야 최종 저장됩니다.</li>
+          <li>저장된 카페는 <b>📝 수정</b> 버튼으로 표시됩니다.</li>
+        </ol>
+        <p style="margin-top:8px;color:#888;">항목: 기본정보 · 업종정보 · 영업시간 · 구역조사 · 방문기록 · 후속조치 · 보완사항</p>
+      </div>
+      <div class="help-block">
+        <div class="help-block-title">🕐 영업 시간 입력 방법</div>
+        <p><b>기본 시간</b>에 대부분 요일의 영업 시간을 입력합니다. (예: 10:00 ~ 21:00)</p>
+        <p>요일 버튼(월~일)을 클릭해 영업일/휴무일을 전환합니다.</p>
+        <ul>
+          <li><b style="color:#2563a8;">● 파랑</b> = 영업일</li>
+          <li><b style="color:#9ca3af;">● 회색</b> = 휴무일</li>
+        </ul>
+        <p>시간 칸을 비워두면 기본 시간이 자동 적용됩니다.</p>
+      </div>
+      <div class="help-block">
+        <div class="help-block-title">📅 방문 기록 작성 방법</div>
+        <p>보고서 하단 <b>방문 기록</b> 표에서 방문일·대화 요약·방문자·결과를 입력합니다.</p>
+        <p><b>📅 달력 클릭</b>을 누르면 달력이 열려 날짜를 선택할 수 있습니다.</p>
+        <p><b>+ 행 추가</b> 버튼으로 방문 기록을 늘릴 수 있습니다.</p>
+      </div>
+      <div class="help-block">
+        <div class="help-block-title">💡 알아두면 좋은 사항</div>
+        <ul>
+          <li>모든 방문 상태·보고서는 실시간으로 다른 사용자와 공유됩니다.</li>
+          <li>보고서 폼은 <b>✕ 버튼</b> 또는 <b>Esc 키</b>로 닫을 수 있습니다.</li>
+          <li><b>🖨 인쇄</b> 버튼으로 현재 보고서를 출력할 수 있습니다.</li>
+          <li>검색·필터·탭을 활용하면 담당 카페를 빠르게 찾을 수 있습니다.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div id="map-panel" style="display:none;">
+    <div style="padding:10px 0 8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <button class="map-ctrl-btn active" id="btnBoundary" onclick="window.toggleMapBoundary()">🗺 구역 경계 ON</button>
+      <button class="map-ctrl-btn" onclick="window.fitMapAll()">전체 보기</button>
+      <span style="font-size:12px;color:#888;" id="mapGeoStatus"></span>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-left:auto;">
+        <span style="display:flex;align-items:center;gap:5px;font-size:12px;"><span style="width:10px;height:10px;border-radius:50%;background:#185FA5;display:inline-block;"></span>하명수</span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:12px;"><span style="width:10px;height:10px;border-radius:50%;background:#0F6E56;display:inline-block;"></span>임형규</span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:12px;"><span style="width:10px;height:10px;border-radius:50%;background:#993C1D;display:inline-block;"></span>오주명</span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:12px;"><span style="width:10px;height:10px;border-radius:50%;background:#7F77DD;display:inline-block;"></span>프랜차이즈</span>
+      </div>
+    </div>
+    <div id="naverMap"></div>
+  </div>
+
+  <div id="main-panel">
+    <div class="stats-row" id="stats-row"></div>
+    <div class="filter-row" id="filter-row"></div>
+    <div class="sort-row" id="sort-row"></div>
+    <div class="table-wrap">
+      <table>
+        <thead id="thead"></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+      <div class="count-row" id="count-row"></div>
+    </div>
+  </div>
+</main>
+
+
+<!-- 방문자 지정 모달 -->
+<div class="modal-overlay" id="visitModal">
+  <div class="modal-box" style="max-width:400px;">
+    <div class="modal-header" style="background:linear-gradient(135deg,#1a4f2a 0%,#16a34a 100%);">
+      <h3>🚶 방문자 지정</h3>
+      <button class="modal-close" onclick="closeVisitModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p id="visitModalCafeName" style="font-size:13px;color:#555;margin-bottom:14px;font-weight:600;"></p>
+      <p style="font-size:12px;color:#888;margin-bottom:10px;">방문 중인 사람을 모두 선택하세요 (복수 선택 가능)</p>
+      <div class="visit-user-grid" id="visitUserGrid"></div>
+      <div class="modal-btn-row">
+        <button class="modal-btn modal-btn-secondary" onclick="closeVisitModal()">취소</button>
+        <button class="modal-btn" style="background:#16a34a;color:#fff;" onclick="confirmVisitModal()">확인 저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 관리자 패널 모달 -->
+<div class="modal-overlay" id="adminModal">
+  <div class="modal-box" style="max-width:640px;">
+    <div class="modal-header">
+      <h3>⚙️ 접속 인원 관리</h3>
+      <button class="modal-close" onclick="closeAdminModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="admin-section">
+        <div class="admin-section-title">새 사용자 등록</div>
+        <div class="admin-add-row">
+          <input type="text" id="newUserName" placeholder="이름">
+          <input type="password" id="newUserPw" placeholder="초기 비밀번호" style="max-width:160px;">
+          <button class="admin-btn" onclick="adminAddUser()">+ 등록</button>
+        </div>
+      </div>
+      <div class="admin-section">
+        <div class="admin-section-title">사용자 목록</div>
+        <table class="admin-table">
+          <thead><tr><th>이름</th><th style="width:70px;text-align:center;">상태</th><th>관리</th></tr></thead>
+          <tbody id="adminUserList"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 비밀번호 변경 모달 -->
+<div class="modal-overlay" id="changePwModal">
+  <div class="modal-box" style="max-width:380px;">
+    <div class="modal-header">
+      <h3>🔑 비밀번호 변경</h3>
+      <button class="modal-close" onclick="closeChangePwModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-field">
+        <label>현재 비밀번호</label>
+        <input type="password" id="cpCurrent" placeholder="현재 비밀번호">
+      </div>
+      <div class="modal-field">
+        <label>새 비밀번호</label>
+        <input type="password" id="cpNew" placeholder="새 비밀번호 (4자 이상)">
+      </div>
+      <div class="modal-field">
+        <label>새 비밀번호 확인</label>
+        <input type="password" id="cpConfirm" placeholder="새 비밀번호 재입력">
+      </div>
+      <div class="modal-error" id="changePwError"></div>
+      <div class="modal-btn-row">
+        <button class="modal-btn modal-btn-secondary" onclick="closeChangePwModal()">취소</button>
+        <button class="modal-btn modal-btn-primary" onclick="doChangePw()">변경 저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /appScreen -->
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, getDoc }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDD1SHB-FDNnmAFoF2PC4lL323vY3IuD7Q",
+  authDomain: "business-area-c8355.firebaseapp.com",
+  projectId: "business-area-c8355",
+  storageBucket: "business-area-c8355.firebasestorage.app",
+  messagingSenderId: "769661429236",
+  appId: "1:769661429236:web:783cae31cc40e91f8745a1"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+window._db = db;
+window._doc = doc;
+window._setDoc = setDoc;
+window._deleteDoc = deleteDoc;
+window._collection = collection;
+window._getDocs = getDocs;
+window._getDoc = getDoc;
+window.visitsCache = {};
+window.usersCache = {};
+
+/* ── 초기 사용자 목록 (Firestore 첫 마이그레이션용) ── */
+const INITIAL_USERS = {
+  '하명수': '4990', '임형규': '6333', '오주명': '7705',
+  '최야은': '4898', '이슬': '0607', '강성호': '0596',
+  '하은미': '7496', '최명재': '7510', '윤대영': '3016', '최종철': '1914',
+};
+
+window.loadAllUsers = async function() {
+  try {
+    const col = window._collection(window._db, 'users');
+    const snap = await window._getDocs(col);
+    window.usersCache = {};
+    snap.forEach(d => { window.usersCache[d.id] = d.data(); });
+    if (Object.keys(window.usersCache).length === 0) {
+      for (const [n, pw] of Object.entries(INITIAL_USERS)) {
+        const data = { password: pw, isAdmin: n === '오주명', active: true };
+        await window._setDoc(window._doc(window._db, 'users', n), data);
+        window.usersCache[n] = data;
+      }
+    }
+  } catch(e) { console.error('loadAllUsers error', e); }
+};
+
+window.saveUser = async function(name, data) {
+  await window._setDoc(window._doc(window._db, 'users', name), data);
+  window.usersCache[name] = data;
+};
+
+window.deleteUserFromDB = async function(name) {
+  await window._deleteDoc(window._doc(window._db, 'users', name));
+  delete window.usersCache[name];
+};
+
+window.doLogin = async function() {
+  const name = document.getElementById('loginName').value.trim();
+  const pw = document.getElementById('loginPw').value;
+  const errEl = document.getElementById('loginError');
+  errEl.textContent = '';
+  if (!name) { errEl.textContent = '이름을 입력해주세요.'; return; }
+  if (!pw) { errEl.textContent = '비밀번호를 입력해주세요.'; return; }
+  document.getElementById('loadingOverlay').style.display = 'flex';
+  await window.loadAllUsers();
+  document.getElementById('loadingOverlay').style.display = 'none';
+  const userData = window.usersCache[name];
+  if (!userData) { errEl.textContent = '등록되지 않은 이름입니다.'; return; }
+  if (!userData.active) { errEl.textContent = '접속 권한이 없습니다. 관리자에게 문의하세요.'; return; }
+  if (userData.password !== pw) { errEl.textContent = '비밀번호가 올바르지 않습니다.'; return; }
+  window._currentUser = { nickname: name, isAdmin: !!userData.isAdmin };
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appScreen').style.display = 'block';
+  document.getElementById('userEmail').textContent = name + ' 님';
+  const adminBtn = document.getElementById('adminBtn');
+  if (adminBtn) adminBtn.style.display = userData.isAdmin ? 'inline-flex' : 'none';
+  document.getElementById('loadingOverlay').style.display = 'flex';
+  await window.loadAllReports();
+  await window.loadAllVisits();
+  window.buildStats();
+  window.buildTabs();
+  window.render();
+  document.getElementById('loadingOverlay').style.display = 'none';
+};
+
+window.loadAllVisits = async function() {
+  try {
+    const col = window._collection(window._db, 'visits');
+    const snap = await window._getDocs(col);
+    window.visitsCache = {};
+    snap.forEach(d => { window.visitsCache[d.id] = d.data(); });
+  } catch(e) { console.error('loadAllVisits error', e); }
+};
+
+window.doLogout = function() {
+  window._currentUser = null;
+  document.getElementById('loginName').value = '';
+  document.getElementById('loginPw').value = '';
+  document.getElementById('loginError').textContent = '';
+  document.getElementById('appScreen').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  const adminBtn = document.getElementById('adminBtn');
+  if (adminBtn) adminBtn.style.display = 'none';
+};
+
+/* ── 페이지 로드 ── */
+document.getElementById('loadingOverlay').style.display = 'none';
+document.getElementById('loginScreen').style.display = 'flex';
+</script>
+
+<script>
+/* ────────────── 카페 데이터 ────────────── */
+const DATA = {
+  "하명수 형제": [
+    {no:61,name:"9.10김밥스앤커피",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"도기동",addr:"경기도 안성시 안성맞춤대로 947"},
+    {no:12,name:"그래비티",branch:"안성점",type:"카페(커피전문점)",dong:"금광면",bdong:"금광면",addr:"경기도 안성시 금광면 금광오산로 312"},
+    {no:48,name:"꽃다방",branch:"",type:"카페(커피전문점)",dong:"안성1동",bdong:"동본동",addr:"경기도 안성시 중앙로412번길 32"},
+    {no:23,name:"남사당카페",branch:"",type:"카페(커피전문점)",dong:"보개면",bdong:"보개면",addr:"경기도 안성시 보개면 남사당로 198-2"},
+    {no:137,name:"다래전통찻집",branch:"",type:"카페(기타음료점)",dong:"안성3동",bdong:"금석동",addr:"경기도 안성시 금석길 95-7"},
+    {no:99,name:"단미청",branch:"",type:"카페(기타음료점)",dong:"안성2동",bdong:"아양동",addr:"경기도 안성시 내혜홀2길 58"},
+    {no:107,name:"달빛별빛",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"석정동",addr:"경기도 안성시 비룡5길 14"},
+    {no:100,name:"대호다방",branch:"",type:"카페(기타음료점)",dong:"안성2동",bdong:"인지동",addr:"경기도 안성시 장기로69번길 25"},
+    {no:85,name:"디딤",branch:"카페3호점",type:"카페(커피전문점)",dong:"안성2동",bdong:"옥산동",addr:"경기도 안성시 아양로 88"},
+    {no:18,name:"디딤돌",branch:"",type:"카페(기타음료점)",dong:"금광면",bdong:"금광면",addr:"경기도 안성시 금광면 금광오산로 316"},
+    {no:33,name:"리시오카페아트홀점",branch:"",type:"카페(커피전문점)",dong:"안성1동",bdong:"현수동",addr:"경기도 안성시 발화대길 21"},
+    {no:133,name:"메드빌트주",branch:"",type:"카페(커피전문점)",dong:"안성3동",bdong:"당왕동",addr:"경기도 안성시 남파로 169"},
+    {no:142,name:"미고",branch:"",type:"카페(커피전문점)",dong:"안성3동",bdong:"당왕동",addr:"경기도 안성시 비룡로 26"},
+    {no:74,name:"바리스타커피",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"아양동",addr:"경기도 안성시 석정2길 1"},
+    {no:14,name:"배티로452",branch:"",type:"카페(커피전문점)",dong:"금광면",bdong:"금광면",addr:"경기도 안성시 금광면 배티로 452"},
+    {no:104,name:"벌툰안성아양지구점",branch:"",type:"카페(기타음료점)",dong:"안성2동",bdong:"옥산동",addr:"경기도 안성시 아양1로 67"},
+    {no:30,name:"보개바람",branch:"",type:"카페(커피전문점)",dong:"보개면",bdong:"보개면",addr:"경기도 안성시 보개면 불현길 10"},
+    {no:101,name:"보스카페",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"석정동",addr:"경기도 안성시 석정2길 22"},
+    {no:69,name:"비카페",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"서인동",addr:"경기도 안성시 중앙로 380"},
+    {no:5,name:"산책길",branch:"",type:"카페(커피전문점)",dong:"금광면",bdong:"금광면",addr:"경기도 안성시 금광면 진안로 1027"},
+    {no:93,name:"세이스윗",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"석정동",addr:"경기도 안성시 중앙로 274-14"},
+    {no:86,name:"스무하루",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"옥산동",addr:"경기도 안성시 아양2로 49"},
+    {no:138,name:"시즌글라스",branch:"한경대점",type:"카페(기타음료점)",dong:"안성3동",bdong:"금산동",addr:"경기도 안성시 학자로 16"},
+    {no:8,name:"알송달송",branch:"",type:"카페(커피전문점)",dong:"금광면",bdong:"금광면",addr:"경기도 안성시 금광면 대동길 4-33"},
+    {no:29,name:"여운",branch:"",type:"카페(커피전문점)",dong:"보개면",bdong:"보개면",addr:"경기도 안성시 보개면 보개원삼로 1189"},
+    {no:60,name:"오르세카페",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"도기동",addr:"경기도 안성시 미양로 785"},
+    {no:112,name:"우지커피",branch:"안성아양점",type:"카페(커피전문점)",dong:"안성2동",bdong:"석정동",addr:"경기도 안성시 아양2로 109-1"},
+    {no:95,name:"유신코드카페",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"인지동",addr:"경기도 안성시 장기로 37"},
+    {no:114,name:"읍천리382",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"석정동",addr:"경기도 안성시 내혜홀1길 12"},
+    {no:28,name:"주주바카페",branch:"",type:"카페(커피전문점)",dong:"보개면",bdong:"보개면",addr:"경기도 안성시 보개면 구송동길 9"},
+    {no:162,name:"차곡차곡",branch:"",type:"카페(커피전문점)",dong:"안성3동",bdong:"당왕동",addr:"경기도 안성시 비룡4길 46"},
+    {no:132,name:"청림원",branch:"",type:"카페(기타음료점)",dong:"안성3동",bdong:"사곡동",addr:"경기도 안성시 태평무길 34-19"},
+    {no:52,name:"카페나무",branch:"",type:"카페(커피전문점)",dong:"안성1동",bdong:"가사동",addr:"경기도 안성시 보개원삼로 87"},
+    {no:22,name:"카페로컬팜",branch:"",type:"카페(커피전문점)",dong:"보개면",bdong:"보개면",addr:"경기도 안성시 보개면 종합운동장로 161"},
+    {no:84,name:"카페룰루랄라",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"석정동",addr:"경기도 안성시 중앙로 351-17"},
+    {no:159,name:"카페사즐모",branch:"",type:"카페(커피전문점)",dong:"안성3동",bdong:"대천동",addr:"경기도 안성시 중앙1길 18"},
+    {no:145,name:"카페슬루프",branch:"",type:"카페(커피전문점)",dong:"안성3동",bdong:"금석동",addr:"경기도 안성시 안성맞춤대로 1328"},
+    {no:59,name:"카페오티디엔",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"옥산동",addr:"경기도 안성시 아양1로 61"},
+    {no:39,name:"카페히스토리",branch:"",type:"카페(커피전문점)",dong:"안성1동",bdong:"낙원동",addr:"경기도 안성시 낙원길 96"},
+    {no:149,name:"커스텀커피",branch:"안성점",type:"카페(커피전문점)",dong:"안성3동",bdong:"당왕동",addr:"경기도 안성시 남파로 150"},
+    {no:35,name:"커피컬쳐",branch:"",type:"카페(커피전문점)",dong:"안성1동",bdong:"옥천동",addr:"경기도 안성시 강변로 137-1"},
+    {no:2,name:"콩세르",branch:"",type:"카페(커피전문점)",dong:"금광면",bdong:"금광면",addr:"경기도 안성시 금광면 배티로 455"},
+    {no:63,name:"햇살가득",branch:"",type:"카페(기타음료점)",dong:"안성2동",bdong:"서인동",addr:"경기도 안성시 낙원길 37"},
+    {no:10,name:"황금다방",branch:"",type:"카페(커피전문점)",dong:"금광면",bdong:"금광면",addr:"경기도 안성시 금광면 금광초교길 81"},
+    {no:87,name:"피다2",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"도기동",addr:"경기도 안성시 능길 6-20"},
+    {no:19,name:"풀",branch:"",type:"카페(커피전문점)",dong:"금광면",bdong:"금광면",addr:"경기도 안성시 금광면 배티로 455"},
+    {no:51,name:"플랫커피",branch:"",type:"카페(커피전문점)",dong:"안성1동",bdong:"낙원동",addr:"경기도 안성시 장기로 101-1"},
+    {no:41,name:"휴엔스토리",branch:"",type:"카페(커피전문점)",dong:"안성1동",bdong:"봉산동",addr:"경기도 안성시 남파로 289-8"},
+  ],
+  "임형규 형제": [
+    {no:53,name:"98.6카페",branch:"",type:"카페(커피전문점)",dong:"안성1동",bdong:"낙원동",addr:"경기도 안성시 장기로 130"},
+    {no:108,name:"공간",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"옥산동",addr:"경기도 안성시 아양2길 41-5"},
+    {no:146,name:"까마로사커피",branch:"",type:"카페(커피전문점)",dong:"안성3동",bdong:"신건지동",addr:"경기도 안성시 개내교1길 4"},
+    {no:65,name:"나의오후",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"서인동",addr:"경기도 안성시 중앙로390번길 13-1"},
+    {no:136,name:"내러티브",branch:"",type:"카페(커피전문점)",dong:"안성3동",bdong:"당왕동",addr:"경기도 안성시 비룡1길 54"},
+    {no:155,name:"다우림",branch:"",type:"카페(기타음료점)",dong:"안성3동",bdong:"대천동",addr:"경기도 안성시 중앙로389번길 26"},
+    {no:9,name:"달감카페",branch:"",type:"카페(커피전문점)",dong:"금광면",bdong:"금광면",addr:"경기도 안성시 금광면 삼흥로 430"},
+    {no:165,name:"당왕동카페",branch:"",type:"카페(커피전문점)",dong:"안성3동",bdong:"당왕동",addr:"경기도 안성시 남파로 184"},
+    {no:11,name:"더나이스뷰",branch:"",type:"카페(커피전문점)",dong:"금광면",bdong:"금광면",addr:"경기도 안성시 금광면 배티로 471"},
+    {no:7,name:"디딤돌",branch:"",type:"카페(기타음료점)",dong:"금광면",bdong:"금광면",addr:"경기도 안성시 금광면 금광오산로 316"},
+    {no:36,name:"디딤사회적협동조합",branch:"",type:"카페(커피전문점)",dong:"안성1동",bdong:"영동",addr:"경기도 안성시 중앙로 430"},
+    {no:128,name:"메드빌트카페희망",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"서인동",addr:"경기도 안성시 시장길 58"},
+    {no:103,name:"민베이크",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"옥산동",addr:"경기도 안성시 아양3길 64"},
+    {no:102,name:"발할라커피",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"아양동",addr:"경기도 안성시 도기1길 98"},
+    {no:27,name:"백년찻집",branch:"",type:"카페(기타음료점)",dong:"보개면",bdong:"보개면",addr:"경기도 안성시 보개면 진안로 1205"},
+    {no:25,name:"법인주주바팜",branch:"",type:"카페(기타음료점)",dong:"보개면",bdong:"보개면",addr:"경기도 안성시 보개면 구송동길 9"},
+    {no:154,name:"블루시엘카페",branch:"",type:"카페(커피전문점)",dong:"안성3동",bdong:"사곡동",addr:"경기도 안성시 안성맞춤대로 1353"},
+    {no:161,name:"빅토리아팝",branch:"",type:"카페(커피전문점)",dong:"안성3동",bdong:"대천동",addr:"경기도 안성시 안성맞춤대로 1065"},
+    {no:79,name:"석정동베이커리카페",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"석정동",addr:"경기도 안성시 아양2로 104"},
+    {no:68,name:"수다방",branch:"",type:"카페(기타음료점)",dong:"안성2동",bdong:"인지동",addr:"경기도 안성시 장기로69번길 19"},
+    {no:148,name:"스토리텔러",branch:"",type:"카페(커피전문점)",dong:"안성3동",bdong:"금산동",addr:"경기도 안성시 금산1길 10-4"},
+    {no:164,name:"아랑해커피",branch:"",type:"카페(커피전문점)",dong:"안성3동",bdong:"금산동",addr:"경기도 안성시 중앙로367번길 72-23"},
+    {no:135,name:"앤베이지",branch:"",type:"카페(커피전문점)",dong:"안성3동",bdong:"신건지동",addr:"경기도 안성시 공단로 13"},
+    {no:42,name:"영삼삼사",branch:"",type:"카페(커피전문점)",dong:"안성1동",bdong:"성남동",addr:"경기도 안성시 장기로74번길 16"},
+    {no:15,name:"오미카페",branch:"",type:"카페(커피전문점)",dong:"금광면",bdong:"금광면",addr:"경기도 안성시 금광면 금광오산로 9"},
+    {no:21,name:"웅S",branch:"",type:"카페(커피전문점)",dong:"보개면",bdong:"보개면",addr:"경기도 안성시 보개면 남사당로 198-4"},
+    {no:4,name:"은가비",branch:"",type:"카페(커피전문점)",dong:"금광면",bdong:"금광면",addr:"경기도 안성시 금광면 삼흥로 148"},
+    {no:38,name:"재건사커피",branch:"",type:"카페(커피전문점)",dong:"안성1동",bdong:"동본동",addr:"경기도 안성시 중앙로400번길 9-1"},
+    {no:34,name:"진달래다방",branch:"",type:"카페(기타음료점)",dong:"안성1동",bdong:"창전동",addr:"경기도 안성시 낙원길 40"},
+    {no:88,name:"천수다방",branch:"",type:"카페(기타음료점)",dong:"안성2동",bdong:"인지동",addr:"경기도 안성시 장기로 72"},
+    {no:90,name:"카사델솔",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"석정동",addr:"경기도 안성시 아양1길 25-11"},
+    {no:26,name:"카페누아",branch:"",type:"카페(커피전문점)",dong:"보개면",bdong:"보개면",addr:"경기도 안성시 보개면 남사당로 380"},
+    {no:97,name:"카페론",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"옥산동",addr:"경기도 안성시 옥산들1길 2"},
+    {no:50,name:"카페블랑",branch:"",type:"카페(커피전문점)",dong:"안성1동",bdong:"낙원동",addr:"경기도 안성시 장기로 104"},
+    {no:120,name:"카페산책",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"옥산동",addr:"경기도 안성시 아양2길 29"},
+    {no:37,name:"카페알로",branch:"",type:"카페(커피전문점)",dong:"안성1동",bdong:"가사동",addr:"경기도 안성시 보개원삼로 35"},
+    {no:109,name:"카페디오",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"석정동",addr:"경기도 안성시 아양1길 40"},
+    {no:144,name:"카페이륜당",branch:"",type:"카페(커피전문점)",dong:"안성3동",bdong:"금산동",addr:"경기도 안성시 백성3길 30"},
+    {no:17,name:"캔버스커피",branch:"",type:"카페(커피전문점)",dong:"금광면",bdong:"금광면",addr:"경기도 안성시 금광면 종합운동장로 106"},
+    {no:134,name:"커피꽃향기",branch:"",type:"카페(커피전문점)",dong:"안성3동",bdong:"금산동",addr:"경기도 안성시 학자로 42"},
+    {no:6,name:"커피하우스117",branch:"",type:"카페(커피전문점)",dong:"금광면",bdong:"금광면",addr:"경기도 안성시 금광면 종합운동장로 117"},
+    {no:147,name:"투앤나인",branch:"",type:"카페(커피전문점)",dong:"안성3동",bdong:"사곡동",addr:"경기도 안성시 사곡길 2"},
+    {no:124,name:"피다",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"석정동",addr:"경기도 안성시 대학로 24"},
+    {no:126,name:"하나공커피",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"석정동",addr:"경기도 안성시 장기로 9"},
+    {no:1,name:"향기",branch:"",type:"카페(커피전문점)",dong:"금광면",bdong:"금광면",addr:"경기도 안성시 금광면 진안로 941"},
+    {no:73,name:"황금휴게실",branch:"",type:"카페(기타음료점)",dong:"안성2동",bdong:"서인동",addr:"경기도 안성시 장기로69번길 37"},
+    {no:13,name:"풀체라",branch:"",type:"카페(커피전문점)",dong:"금광면",bdong:"금광면",addr:"경기도 안성시 금광면 종합운동장로 39"},
+    {no:58,name:"리시오카페평생학습관점",branch:"",type:"카페(커피전문점)",dong:"안성1동",bdong:"현수동",addr:"경기도 안성시 발화대길 23"},
+  ],
+  "오주명 형제": [
+    {no:118,name:"결",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"도기동",addr:"경기도 안성시 강변남로 22"},
+    {no:158,name:"광천휴까페",branch:"",type:"카페(커피전문점)",dong:"안성3동",bdong:"당왕동",addr:"경기도 안성시 비룡4길 20"},
+    {no:40,name:"꼬르메움",branch:"",type:"카페(커피전문점)",dong:"안성1동",bdong:"가사동",addr:"경기도 안성시 보개원삼로 165-20"},
+    {no:49,name:"낙원다방",branch:"",type:"카페(기타음료점)",dong:"안성1동",bdong:"낙원동",addr:"경기도 안성시 장기로91번길 6"},
+    {no:151,name:"달달공작소",branch:"",type:"카페(커피전문점)",dong:"안성3동",bdong:"금산동",addr:"경기도 안성시 안성맞춤대로 1153-1"},
+    {no:44,name:"다향",branch:"",type:"카페(기타음료점)",dong:"안성1동",bdong:"구포동",addr:"경기도 안성시 혜산로 18"},
+    {no:131,name:"대천동#1Beer",branch:"",type:"카페(커피전문점)",dong:"안성3동",bdong:"대천동",addr:"경기도 안성시 중앙로379번길 16"},
+    {no:55,name:"디플",branch:"",type:"카페(커피전문점)",dong:"안성1동",bdong:"영동",addr:"경기도 안성시 중앙로 420"},
+    {no:72,name:"도기동커피",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"도기동",addr:"경기도 안성시 도기5길 17-2"},
+    {no:83,name:"버터라임디저트샵",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"석정동",addr:"경기도 안성시 중앙로 274-26"},
+    {no:98,name:"블룸",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"인지동",addr:"경기도 안성시 장기로 69"},
+    {no:3,name:"사랑방라이브까페",branch:"",type:"카페(커피전문점)",dong:"금광면",bdong:"금광면",addr:"경기도 안성시 금광면 금광오산로 197"},
+    {no:157,name:"슈티뭉하우스",branch:"",type:"카페(커피전문점)",dong:"안성3동",bdong:"금산동",addr:"경기도 안성시 중앙로367번길 34"},
+    {no:110,name:"스트릿1988",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"석정동",addr:"경기도 안성시 중앙로 360"},
+    {no:141,name:"아우라이",branch:"",type:"카페(커피전문점)",dong:"안성3동",bdong:"사곡동",addr:"경기도 안성시 태평무길 47"},
+    {no:91,name:"에이치커피",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"석정동",addr:"경기도 안성시 대학로 30"},
+    {no:80,name:"은하수다방",branch:"",type:"카페(기타음료점)",dong:"안성2동",bdong:"인지동",addr:"경기도 안성시 장기로69번길 9-14"},
+    {no:46,name:"유나",branch:"",type:"카페(커피전문점)",dong:"안성1동",bdong:"동본동",addr:"경기도 안성시 중앙로400번길 13"},
+    {no:31,name:"주얼리",branch:"",type:"카페(커피전문점)",dong:"보개면",bdong:"보개면",addr:"경기도 안성시 보개면 종합운동장로 215"},
+    {no:24,name:"청류재커피",branch:"",type:"카페(커피전문점)",dong:"보개면",bdong:"보개면",addr:"경기도 안성시 보개면 동문이길 14-17"},
+    {no:119,name:"카페,베베",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"옥산동",addr:"경기도 안성시 중앙대학로 333"},
+    {no:96,name:"카페드오투",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"계동",addr:"경기도 안성시 안성맞춤대로 833"},
+    {no:47,name:"카페로운",branch:"",type:"카페(커피전문점)",dong:"안성1동",bdong:"숭인동",addr:"경기도 안성시 중앙2길 65"},
+    {no:64,name:"카페소월",branch:"",type:"카페(기타음료점)",dong:"안성2동",bdong:"석정동",addr:"경기도 안성시 석정1길 23"},
+    {no:77,name:"카페애니시다",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"옥산동",addr:"경기도 안성시 아양2로 49"},
+    {no:94,name:"카페이에프",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"도기동",addr:"경기도 안성시 미양로 786-14"},
+    {no:92,name:"카페블레스롤",branch:"안성점",type:"카페(커피전문점)",dong:"안성2동",bdong:"석정동",addr:"경기도 안성시 중앙로 324"},
+    {no:71,name:"커피지애",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"석정동",addr:"경기도 안성시 중앙로372번길 26"},
+    {no:43,name:"케이앤케이cafe",branch:"",type:"카페(커피전문점)",dong:"안성1동",bdong:"낙원동",addr:"경기도 안성시 낙원길 112"},
+    {no:62,name:"곰휴게실",branch:"",type:"카페(기타음료점)",dong:"안성2동",bdong:"인지동",addr:"경기도 안성시 낙원길 18"},
+    {no:75,name:"협동조합이음뜰",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"석정동",addr:"경기도 안성시 중앙로371번길 13"},
+    {no:54,name:"포도당녹음점",branch:"",type:"카페(커피전문점)",dong:"안성1동",bdong:"봉산동",addr:"경기도 안성시 월덕천길 15-1"},
+    {no:140,name:"맛있는추억",branch:"",type:"카페(커피전문점)",dong:"안성3동",bdong:"당왕동",addr:"경기도 안성시 비룡2길 23-7"},
+    {no:113,name:"몬트",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"옥산동",addr:"경기도 안성시 아양2길 4"},
+    {no:78,name:"바그다드카페",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"중리동",addr:"경기도 안성시 서운로 822-8"},
+    {no:20,name:"프롬302",branch:"",type:"카페(커피전문점)",dong:"보개면",bdong:"보개면",addr:"경기도 안성시 보개면 남사당로 165"},
+    {no:156,name:"와이블랙",branch:"",type:"카페(커피전문점)",dong:"안성3동",bdong:"연지동",addr:"경기도 안성시 안성맞춤대로 1076"},
+    {no:16,name:"하이커피",branch:"",type:"카페(커피전문점)",dong:"금광면",bdong:"금광면",addr:"경기도 안성시 금광면 진안로 1128"},
+    {no:63,name:"햇살가득",branch:"",type:"카페(기타음료점)",dong:"안성2동",bdong:"서인동",addr:"경기도 안성시 낙원길 37"},
+  ],
+  "프랜차이즈": [
+    {no:32,name:"카페베네",branch:"안성점",type:"카페(커피전문점)",dong:"안성1동",bdong:"동본동",addr:"경기도 안성시 중앙로 402",person:"하명수"},
+    {no:45,name:"설빙",branch:"",type:"카페(기타음료점)",dong:"안성1동",bdong:"동본동",addr:"경기도 안성시 중앙로 406-1",person:"하명수"},
+    {no:56,name:"천씨씨커피안성",branch:"터미널점",type:"카페(커피전문점)",dong:"안성1동",bdong:"가사동",addr:"경기도 안성시 비봉로 86",person:"하명수"},
+    {no:57,name:"카페일리터 안성점",branch:"",type:"카페(커피전문점)",dong:"안성1동",bdong:"동본동",addr:"경기도 안성시 중앙로400번길 33",person:"하명수"},
+    {no:66,name:"더리터",branch:"한경대점",type:"카페(커피전문점)",dong:"안성2동",bdong:"석정동",addr:"경기도 안성시 중앙로 328",person:"임형규"},
+    {no:67,name:"이디야안성아양지구점",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"옥산동",addr:"경기도 안성시 아양1로 73",person:"임형규"},
+    {no:70,name:"감성커피",branch:"안성아양점",type:"카페(커피전문점)",dong:"안성2동",bdong:"석정동",addr:"경기도 안성시 아양1길 31",person:"임형규"},
+    {no:76,name:"메가엠지씨커피",branch:"안성아양점",type:"카페(커피전문점)",dong:"안성2동",bdong:"옥산동",addr:"경기도 안성시 아양1로 77-31",person:"임형규"},
+    {no:82,name:"빽다방",branch:"안성아양점",type:"카페(커피전문점)",dong:"안성2동",bdong:"옥산동",addr:"경기도 안성시 아양1로 77-10",person:"임형규"},
+    {no:89,name:"컴포즈커피안성",branch:"중앙로점",type:"카페(커피전문점)",dong:"안성2동",bdong:"서인동",addr:"경기도 안성시 중앙로 374",person:"임형규"},
+    {no:105,name:"컴포즈커피",branch:"안성아양점",type:"카페(커피전문점)",dong:"안성2동",bdong:"옥산동",addr:"경기도 안성시 아양1로 61",person:"임형규"},
+    {no:106,name:"디저트39",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"석정동",addr:"경기도 안성시 석정2길 20-9",person:"임형규"},
+    {no:111,name:"투썸플레이스안성",branch:"한경대점",type:"카페(커피전문점)",dong:"안성2동",bdong:"석정동",addr:"경기도 안성시 중앙로 274",person:"임형규"},
+    {no:115,name:"씨씨디",branch:"안성점",type:"카페(커피전문점)",dong:"안성2동",bdong:"옥산동",addr:"경기도 안성시 아양1로 61",person:"임형규"},
+    {no:116,name:"봉명동내커피",branch:"안성점",type:"카페(커피전문점)",dong:"안성2동",bdong:"석정동",addr:"경기도 안성시 중앙로 274-7",person:"임형규"},
+    {no:117,name:"토프레소안성비룡점",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"석정동",addr:"경기도 안성시 비룡로 89",person:"임형규"},
+    {no:121,name:"매머드익스프레스",branch:"안성아양점",type:"카페(커피전문점)",dong:"안성2동",bdong:"옥산동",addr:"경기도 안성시 아양1로 77-10",person:"이슬,남효희"},
+    {no:122,name:"달롱도르요거트아이스크림",branch:"안성점",type:"카페(커피전문점)",dong:"안성2동",bdong:"석정동",addr:"경기도 안성시 중앙로 324",person:"임형규"},
+    {no:123,name:"더벤티안성석정점",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"석정동",addr:"경기도 안성시 석정2길 18",person:"임형규"},
+    {no:125,name:"베러먼데이안성계동점",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"계동",addr:"경기도 안성시 안성맞춤대로 826",person:"임형규"},
+    {no:127,name:"안성계동DT",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"계동",addr:"경기도 안성시 안성맞춤대로 803",person:"임형규"},
+    {no:129,name:"안성석정DT",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"석정동",addr:"경기도 안성시 중앙로 308",person:"임형규"},
+    {no:130,name:"천씨씨커피 안성계동점",branch:"",type:"카페(커피전문점)",dong:"안성2동",bdong:"계동",addr:"경기도 안성시 안성맞춤대로 789",person:"임형규"},
+    {no:139,name:"공차",branch:"",type:"카페(커피전문점)",dong:"안성3동",bdong:"대천동",addr:"경기도 안성시 중앙1길 4",person:"오주명"},
+    {no:143,name:"이디야커피",branch:"전문점",type:"카페(커피전문점)",dong:"안성3동",bdong:"대천동",addr:"경기도 안성시 중앙로389번길 17",person:"오주명"},
+    {no:150,name:"안성빽다방",branch:"중앙로점",type:"카페(커피전문점)",dong:"안성3동",bdong:"대천동",addr:"경기도 안성시 중앙로379번길 4",person:"오주명"},
+    {no:152,name:"컴포즈커피",branch:"한경대점",type:"카페(커피전문점)",dong:"안성3동",bdong:"당왕동",addr:"경기도 안성시 비룡1길 36",person:"오주명"},
+    {no:153,name:"컴포즈커피안성",branch:"연지점",type:"카페(커피전문점)",dong:"안성3동",bdong:"연지동",addr:"경기도 안성시 혜산로 2",person:"오주명"},
+    {no:160,name:"메가엠지씨커피안성",branch:"명동점",type:"카페(커피전문점)",dong:"안성3동",bdong:"대천동",addr:"경기도 안성시 중앙로389번길 23",person:"오주명"},
+    {no:163,name:"빽다방빵연구소안성당왕점",branch:"",type:"카페(커피전문점)",dong:"안성3동",bdong:"당왕동",addr:"경기도 안성시 안성맞춤대로 1182",person:"오주명"},
+    {no:166,name:"매머드익스프레스안성",branch:"중앙점",type:"카페(커피전문점)",dong:"안성3동",bdong:"대천동",addr:"경기도 안성시 중앙1길 3",person:"오주명"},
+    {no:167,name:"메가엠지씨커피안성3동행정복지",branch:"센터점",type:"카페(커피전문점)",dong:"안성3동",bdong:"당왕동",addr:"경기도 안성시 고수2로 19",person:"오주명"},
+  ]
+};
+
+/* ── 보고서 캐시 (Firestore → 메모리) ── */
+let reportsCache = {};
+function cafeKey(cafe) { return `${cafe.no}_${cafe.name}`; }
+
+window.loadAllReports = async function() {
+  try {
+    const db = window._db;
+    const col = window._collection(db, 'reports');
+    const snap = await window._getDocs(col);
+    reportsCache = {};
+    snap.forEach(d => { reportsCache[d.id] = d.data(); });
+  } catch(e) { console.error('loadAllReports error', e); }
+};
+
+/* ── 탭 / 필터 ── */
+const TABS_ORDER = ["전체","하명수 형제","임형규 형제","오주명 형제","프랜차이즈"];
+let currentTab = "전체", dongFilter = "", currentCafe = null;
+let currentSort = { key: 'no', dir: 1 };
+window.expandedKey = null;
+
+function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function getAllRows() {
+  let all = [];
+  for (const [p, rows] of Object.entries(DATA)) rows.forEach(r => all.push({...r, person:p}));
+  return all;
+}
+function getRows() {
+  let rows;
+  if (currentTab==="내 방문 현황") {
+    const myName = window._currentUser?.nickname;
+    rows = getAllRows().filter(r => {
+      const cur = (window.visitsCache||{})[cafeKey(r)];
+      const visitors = cur ? (cur.visitors||(cur.visitor?[cur.visitor]:[])) : [];
+      return visitors.includes(myName);
+    });
+  } else {
+    rows = currentTab==="전체" ? getAllRows()
+      : currentTab==="프랜차이즈" ? DATA["프랜차이즈"].map(r=>({...r,person:"프랜차이즈"}))
+      : (DATA[currentTab]||[]).map(r=>({...r,person:currentTab}));
+  }
+  if (dongFilter) rows = rows.filter(r => r.dong===dongFilter);
+  const q = document.getElementById("search").value.trim().toLowerCase();
+  if (q) rows = rows.filter(r =>
+    (r.name||"").toLowerCase().includes(q) ||
+    (r.addr||"").toLowerCase().includes(q) ||
+    (r.dong||"").includes(q) ||
+    (r.branch||"").toLowerCase().includes(q)
+  );
+  rows = rows.slice().sort((a, b) => {
+    const { key, dir } = currentSort;
+    let va, vb;
+    if (key === 'no') { va = a.no; vb = b.no; return (va - vb) * dir; }
+    if (key === 'name') { va = a.name||""; vb = b.name||""; }
+    if (key === 'person') { va = a.person||""; vb = b.person||""; }
+    return va.localeCompare(vb, 'ko') * dir;
+  });
+  return rows;
+}
+
+window.buildTabs = function() {
+  const wrap = document.getElementById("tabs"); wrap.innerHTML = "";
+  TABS_ORDER.forEach(t => {
+    const cnt = t==="전체" ? getAllRows().length : (DATA[t]||[]).length;
+    const btn = document.createElement("button");
+    btn.className = "tab-btn"+(t===currentTab?" active":"");
+    btn.dataset.person = t;
+    btn.innerHTML = `${t} <span class="count">${cnt}</span>`;
+    btn.onclick = () => { currentTab=t; dongFilter=""; window.buildTabs(); window.render(); };
+    wrap.appendChild(btn);
+  });
+  const myName = window._currentUser?.nickname;
+  const myVisitCnt = getAllRows().filter(r => {
+    const cur = (window.visitsCache||{})[cafeKey(r)];
+    const visitors = cur ? (cur.visitors||(cur.visitor?[cur.visitor]:[])) : [];
+    return visitors.includes(myName);
+  }).length;
+  const visitTab = document.createElement("button");
+  visitTab.className = "tab-btn"+(currentTab==="내 방문 현황"?" active":"");
+  visitTab.dataset.person = "내 방문 현황";
+  visitTab.innerHTML = `🚶 내 방문 현황 <span class="count">${myVisitCnt}</span>`;
+  visitTab.onclick = () => { currentTab="내 방문 현황"; dongFilter=""; window.buildTabs(); window.render(); };
+  wrap.appendChild(visitTab);
+
+  const mapBtn = document.createElement("button");
+  mapBtn.className = "tab-btn"+(currentTab==="지도"?" active":"");
+  mapBtn.style.cssText = "color:#0F6E56;";
+  mapBtn.innerHTML = `🗺 지도`;
+  mapBtn.onclick = () => { currentTab="지도"; window.buildTabs(); window.render(); };
+  wrap.appendChild(mapBtn);
+
+  const helpBtn = document.createElement("button");
+  helpBtn.className = "tab-btn"+(currentTab==="사용법"?" active":"");
+  helpBtn.style.cssText = "margin-left:auto;color:#2563a8;";
+  helpBtn.innerHTML = `❓ 사용법`;
+  helpBtn.onclick = () => { currentTab="사용법"; window.buildTabs(); window.render(); };
+  wrap.appendChild(helpBtn);
+};
+
+function buildFilters() {
+  const rows = currentTab==="전체" ? getAllRows() : currentTab==="프랜차이즈" ? DATA["프랜차이즈"].map(r=>({...r,person:"프랜차이즈"})) : (DATA[currentTab]||[]).map(r=>({...r,person:currentTab}));
+  const dongs = [...new Set(rows.map(r=>r.dong))].filter(Boolean).sort();
+  const wrap = document.getElementById("filter-row");
+  wrap.innerHTML = `<span class="filter-label">동/면 필터</span>`;
+  const ab = document.createElement("button");
+  ab.className = "filter-btn"+(!dongFilter?" active":""); ab.textContent="전체";
+  ab.onclick = ()=>{ dongFilter=""; window.render(); }; wrap.appendChild(ab);
+  dongs.forEach(d => {
+    const b = document.createElement("button");
+    b.className="filter-btn"+(dongFilter===d?" active":""); b.textContent=d;
+    b.onclick=()=>{ dongFilter=dongFilter===d?"":d; window.render(); }; wrap.appendChild(b);
+  });
+}
+
+/* ── 방문자 지정 모달 ── */
+let visitModalCafe = null;
+
+window.openVisitModal = function(cafe) {
+  visitModalCafe = cafe;
+  const key = cafeKey(cafe);
+  const cur = (window.visitsCache||{})[key];
+  const currentVisitors = cur ? (cur.visitors||(cur.visitor?[cur.visitor]:[])) : [];
+
+  document.getElementById('visitModalCafeName').textContent = `📍 ${cafe.name}${cafe.branch ? ' '+cafe.branch : ''}`;
+
+  const users = window.usersCache || {};
+  const activeUsers = Object.entries(users)
+    .filter(([,d]) => d.active)
+    .sort((a,b) => a[0].localeCompare(b[0],'ko'));
+
+  document.getElementById('visitUserGrid').innerHTML = activeUsers.map(([name]) => {
+    const checked = currentVisitors.includes(name);
+    return `<label class="visit-user-label ${checked?'checked':''}">
+      <input type="checkbox" value="${name}" ${checked?'checked':''} onchange="this.closest('label').classList.toggle('checked',this.checked)">
+      ${name}
+    </label>`;
+  }).join('');
+
+  document.getElementById('visitModal').classList.add('open');
+};
+
+window.closeVisitModal = function() {
+  document.getElementById('visitModal').classList.remove('open');
+  visitModalCafe = null;
+};
+
+window.confirmVisitModal = async function() {
+  if (!visitModalCafe) return;
+  const key = cafeKey(visitModalCafe);
+  const selected = [...document.querySelectorAll('#visitUserGrid input:checked')].map(e => e.value);
+  try {
+    if (selected.length === 0) {
+      await window._deleteDoc(window._doc(window._db,'visits',key));
+      delete window.visitsCache[key];
+    } else {
+      const data = { visitors: selected };
+      await window._setDoc(window._doc(window._db,'visits',key), data);
+      window.visitsCache[key] = data;
+    }
+    window.closeVisitModal();
+    window.buildStats();
+    window.buildTabs();
+    window.render();
+  } catch(e) { alert('저장 오류: '+e.message); }
+};
+
+/* ── 관리자 패널 ── */
+window.openAdminPanel = function() {
+  document.getElementById('adminModal').classList.add('open');
+  renderAdminUserList();
+};
+window.closeAdminModal = function() {
+  document.getElementById('adminModal').classList.remove('open');
+};
+function renderAdminUserList() {
+  const users = window.usersCache || {};
+  const tbody = document.getElementById('adminUserList');
+  const rows = Object.entries(users).sort((a,b) => a[0].localeCompare(b[0], 'ko'));
+  tbody.innerHTML = rows.map(([name, data]) => {
+    const adminBadge = data.isAdmin
+      ? `<span style="font-size:10px;background:#7F77DD;color:#fff;padding:1px 6px;border-radius:8px;margin-left:4px;">관리자</span>` : '';
+    const statusDot = `<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${data.active?'#16a34a':'#dc2626'};margin-right:4px;vertical-align:middle;"></span>`;
+    const toggleBtn = `<button class="admin-mini-btn" onclick="adminToggleActive('${name}',${!data.active})">${data.active?'비활성화':'활성화'}</button>`;
+    const pwBtn = `<button class="admin-mini-btn" onclick="adminResetPw('${name}')" style="margin-left:4px;">비밀번호 변경</button>`;
+    const delBtn = data.isAdmin ? '' : `<button class="admin-mini-btn danger" onclick="adminDeleteUser('${name}')" style="margin-left:4px;">삭제</button>`;
+    return `<tr>
+      <td>${name}${adminBadge}</td>
+      <td style="text-align:center;">${statusDot}${data.active?'활성':'비활성'}</td>
+      <td>${toggleBtn}${pwBtn}${delBtn}</td>
+    </tr>`;
+  }).join('');
+}
+window.adminToggleActive = async function(name, active) {
+  const data = { ...window.usersCache[name], active };
+  await window.saveUser(name, data);
+  renderAdminUserList();
+};
+window.adminResetPw = function(name) {
+  const newPw = prompt(`[${name}] 새 비밀번호를 입력하세요:`);
+  if (newPw === null) return;
+  if (newPw.trim().length < 4) { alert('4자 이상 입력해주세요.'); return; }
+  window.saveUser(name, { ...window.usersCache[name], password: newPw.trim() })
+    .then(() => alert(`[${name}] 비밀번호가 변경되었습니다.`));
+};
+window.adminDeleteUser = async function(name) {
+  if (!confirm(`[${name}] 사용자를 삭제하시겠습니까?`)) return;
+  await window.deleteUserFromDB(name);
+  renderAdminUserList();
+};
+window.adminAddUser = async function() {
+  const name = document.getElementById('newUserName').value.trim();
+  const pw = document.getElementById('newUserPw').value.trim();
+  if (!name || !pw) { alert('이름과 비밀번호를 모두 입력해주세요.'); return; }
+  if (pw.length < 4) { alert('비밀번호는 4자 이상이어야 합니다.'); return; }
+  if (window.usersCache[name]) { alert('이미 등록된 이름입니다.'); return; }
+  await window.saveUser(name, { password: pw, isAdmin: false, active: true });
+  document.getElementById('newUserName').value = '';
+  document.getElementById('newUserPw').value = '';
+  renderAdminUserList();
+};
+
+/* ── 비밀번호 변경 ── */
+window.openChangePw = function() {
+  document.getElementById('changePwModal').classList.add('open');
+  document.getElementById('changePwError').textContent = '';
+  document.getElementById('cpCurrent').value = '';
+  document.getElementById('cpNew').value = '';
+  document.getElementById('cpConfirm').value = '';
+};
+window.closeChangePwModal = function() {
+  document.getElementById('changePwModal').classList.remove('open');
+};
+window.doChangePw = async function() {
+  const name = window._currentUser?.nickname;
+  const current = document.getElementById('cpCurrent').value;
+  const newPw = document.getElementById('cpNew').value;
+  const confirm2 = document.getElementById('cpConfirm').value;
+  const errEl = document.getElementById('changePwError');
+  errEl.textContent = '';
+  const userData = window.usersCache[name];
+  if (!userData) return;
+  if (userData.password !== current) { errEl.textContent = '현재 비밀번호가 올바르지 않습니다.'; return; }
+  if (newPw.length < 4) { errEl.textContent = '새 비밀번호는 4자 이상이어야 합니다.'; return; }
+  if (newPw !== confirm2) { errEl.textContent = '새 비밀번호가 일치하지 않습니다.'; return; }
+  await window.saveUser(name, { ...userData, password: newPw });
+  window.closeChangePwModal();
+  alert('비밀번호가 변경되었습니다.');
+};
+
+function buildSortButtons() {
+  const wrap = document.getElementById("sort-row");
+  if (!wrap) return;
+  const SORTS = [
+    { key: 'no',     label: '번호순' },
+    { key: 'name',   label: '카페명순' },
+    { key: 'person', label: '담당자순' },
+  ];
+  wrap.innerHTML = `<span class="sort-label">정렬</span>`;
+  SORTS.forEach(({ key, label }) => {
+    const isActive = currentSort.key === key;
+    const arrow = isActive ? (currentSort.dir === 1 ? ' ↑' : ' ↓') : '';
+    const btn = document.createElement("button");
+    btn.className = "sort-btn" + (isActive ? " active" : "");
+    btn.textContent = label + arrow;
+    btn.onclick = () => {
+      if (currentSort.key === key) {
+        currentSort.dir *= -1;
+      } else {
+        currentSort = { key, dir: 1 };
+      }
+      window.render();
+    };
+    wrap.appendChild(btn);
+  });
+}
+
+window.buildStats = function() {
+  const wrap = document.getElementById("stats-row"); wrap.innerHTML="";
+  ["하명수 형제","임형규 형제","오주명 형제","프랜차이즈"].forEach((p,i)=>{
+    const color=["blue","teal","coral","purple"][i];
+    const total=(DATA[p]||[]).length;
+    const done=(DATA[p]||[]).filter(r=>!!reportsCache[cafeKey(r)]).length;
+    const c=document.createElement("div"); c.className="stat-card";
+    c.innerHTML=`<div class="stat-label">${p}</div><div class="stat-value ${color}">${total}</div><div style="font-size:11px;color:#aaa;margin-top:2px;">보고서 작성: ${done}건</div>`;
+    wrap.appendChild(c);
+  });
+  const allCafes = getAllRows();
+  const vc = window.visitsCache || {};
+  function getVisitors(key){ const d=vc[key]; if(!d)return []; return d.visitors||( d.visitor?[d.visitor]:[] ); }
+  const visitingCount = allCafes.filter(r => getVisitors(cafeKey(r)).length > 0).length;
+  const notVisiting = allCafes.length - visitingCount;
+  const v = document.createElement("div"); v.className="stat-card";
+  v.innerHTML=`<div class="stat-label">방문 현황</div><div class="stat-value" style="color:#16a34a;">${visitingCount}</div><div style="font-size:11px;color:#aaa;margin-top:2px;">방문 중 · 미방문: ${notVisiting}개</div>`;
+  wrap.appendChild(v);
+};
+
+window.render = function() {
+  const isHelp = currentTab === "사용법";
+  const isMap  = currentTab === "지도";
+  const hp   = document.getElementById("help-panel");
+  const mp   = document.getElementById("main-panel");
+  const mapl = document.getElementById("map-panel");
+  if(hp)   hp.style.display   = isHelp ? "block" : "none";
+  if(mapl) mapl.style.display = isMap  ? "block" : "none";
+  if(mp)   mp.style.display   = (isHelp||isMap) ? "none" : "";
+  if(isHelp) return;
+  if(isMap)  { window.renderMapView(); return; }
+  const rows = getRows();
+  const isFranchise = currentTab==="프랜차이즈", isAll = currentTab==="전체", isMyVisits = currentTab==="내 방문 현황";
+  const colspan = (isFranchise||isAll||isMyVisits) ? 9 : 8;
+  buildFilters(); buildSortButtons(); window.buildStats();
+  document.getElementById("total-badge").textContent=`전체 ${getAllRows().length}개`;
+  document.getElementById("thead").innerHTML=`<tr>
+    <th style="width:48px;">번호</th><th>상호명</th><th style="width:90px;">지점명</th>
+    ${isFranchise||isAll||isMyVisits?'<th style="width:72px;">담당</th>':''}
+    <th style="width:110px;">분류</th><th style="width:72px;">행정동</th>
+    <th>도로명 주소</th><th style="width:60px;">지도</th><th style="width:100px;">보고서/방문</th></tr>`;
+  const tbody=document.getElementById("tbody");
+  if(!rows.length){tbody.innerHTML=`<tr><td colspan="${colspan}" class="empty">검색 결과가 없습니다</td></tr>`;}
+  else {
+    tbody.innerHTML=rows.map(r=>{
+      const key=cafeKey(r);
+      const tc=r.type==="카페(커피전문점)"?"type-coffee":"type-other";
+      const pk=(r.person||"").replace(" 형제","");
+      const hasReport=!!reportsCache[key];
+      const isExpanded=key===window.expandedKey;
+      const pd=(isFranchise||isAll||isMyVisits)?`<td data-label="담당"><span class="person-badge person-${pk}">${r.person==="프랜차이즈"?(r.person_name||r.person):r.person}</span></td>`:"";
+      const vc=window.visitsCache||{};
+      const vi=vc[key];
+      const myName=window._currentUser?.nickname;
+      const visitors=(vi?(vi.visitors||(vi.visitor?[vi.visitor]:[])):[] );
+      const isMyVisit=visitors.includes(myName);
+      const visitingBadge=visitors.length>0?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;">${visitors.map(n=>`<span class="visiting-badge">${n}</span>`).join('')}</div>`:``;
+      const visitBtn=`<button class="visit-toggle-btn ${isMyVisit?'active':''}" onclick='openVisitModal(${JSON.stringify(r)})'>${isMyVisit?'🚶 방문 중':'방문 참여'}</button>`;
+      const personBadgeMobile=(isFranchise||isAll)?`<span class="person-badge person-${pk}">${r.person==="프랜차이즈"?(r.person_name||r.person):r.person}</span>`:"";
+      const branchMobile=r.branch?`<span class="mobile-branch">(${r.branch})</span>`:"";
+      const mapUrl=`https://map.kakao.com/link/search/${encodeURIComponent(r.name+' '+r.addr)}`;
+      let html=`<tr class="${isExpanded?'accordion-open':''}">
+        <td data-label="번호"><span class="no-badge">${r.no}</span></td>
+        <td data-label="상호명">
+          <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;">
+            <span class="cafe-name">${r.name}</span>${branchMobile}
+          </div>
+          ${visitingBadge}
+          <div class="mobile-meta-row">${personBadgeMobile}<span class="type-tag ${tc}">${r.type==="카페(커피전문점)"?"커피전문점":"기타음료점"}</span><span class="dong-text">${r.dong||""}</span></div>
+          <div class="mobile-addr">${(r.addr||"").replace("경기도 안성시 ","")}</div>
+        </td>
+        <td data-label="지점명"><span class="branch-tag">${r.branch||""}</span></td>
+        ${pd}
+        <td data-label="분류"><span class="type-tag ${tc}">${r.type==="카페(커피전문점)"?"커피전문점":"기타음료점"}</span></td>
+        <td data-label="행정동"><span class="dong-text">${r.dong||""}</span></td>
+        <td data-label="주소"><span class="addr-text">${(r.addr||"").replace("경기도 안성시 ","")}</span></td>
+        <td data-label="지도"><a class="map-link" href="${mapUrl}" target="_blank">지도 →</a></td>
+        <td data-label="보고서">
+          <button class="report-btn ${hasReport?'has-data':''}" onclick='openReport(${JSON.stringify(r)})'>${hasReport?"📝 수정":"📋 작성"}</button>
+          ${visitBtn}
+          <a class="map-link mobile-map-link" href="${mapUrl}" target="_blank">지도 →</a>
+        </td>
+      </tr>`;
+      if(isExpanded){
+        html+=`<tr class="accordion-row"><td colspan="${colspan}"><div id="accordionContainer">${buildReportFormHTML(currentCafe||r, reportsCache[key]||{})}</div></td></tr>`;
+      }
+      return html;
+    }).join("");
+  }
+  document.getElementById("count-row").textContent=`${rows.length}개 표시`;
+};
+
+/* ── 보고서 아코디언 ── */
+let rpRowCount=0;
+const RP_RESULTS_LIST=['관심','출판물 전달','재방문','거절'];
+
+function getChecked(name){ return [...document.querySelectorAll(`input[name="${name}"]:checked`)].map(e=>e.value); }
+
+function buildReportFormHTML(cafe, saved){
+  const DAYS=['월','화','수','목','금','토','일'];
+  const targets=['사장','직원','고객','전체'];
+  const visits=saved.visits||(saved.visits||[{},{},{},{}]);
+  rpRowCount=visits.length||4;
+  const visitRowsHTML=(visits.length>0?visits:[{},{},{},{}]).map((v,idx)=>{
+    const ri=idx+1;
+    const selResult=(v.result||[])[0]||'';
+    return `<tr>
+      <td><div class="date-wrap"><span class="date-icon">📅</span><span class="date-text" id="rp-vdate-lbl_${ri}">${esc(v.date)||'달력 클릭'}</span><input type="date" id="rp-vdate_${ri}" value="${esc(v.date)}" class="date-pick-input" onchange="window.updateDateLabel(${ri},this.value)"></div></td>
+      <td><input type="text" id="rp-vsummary_${ri}" placeholder="대화 내용 요약" value="${esc(v.summary)}"></td>
+      <td><input type="text" id="rp-vvisitor_${ri}" placeholder="이름" value="${esc(v.visitor)}"></td>
+      <td><select id="rp-result-sel_${ri}" class="result-select"><option value="">— 결과 —</option><option value="관심"${'관심'===selResult?' selected':''}>관심</option><option value="출판물 전달"${'출판물 전달'===selResult?' selected':''}>출판물 전달</option><option value="재방문"${'재방문'===selResult?' selected':''}>재방문</option><option value="거절"${'거절'===selResult?' selected':''}>거절</option></select></td>
+    </tr>`;
+  }).join('');
+  const person=cafe.person==='프랜차이즈'?`프랜차이즈 · ${cafe.person_name||''}`:(cafe.person||'');
+  const bhd=saved.bizHoursData||{};
+  const defS=bhd.defaultStart||'';
+  const defE=bhd.defaultEnd||'';
+  const bhDays=bhd.days||{};
+  const hoursRows=DAYS.map(d=>{
+    const dh=bhDays[d]||{};
+    const isOff=dh.off||false;
+    const hint=(!dh.customStart&&!isOff)?`<span class="biz-c-hint">비워두면 기본 시간 적용</span>`:'';
+    return `<tr>
+      <td><button type="button" class="biz-c-day-btn ${isOff?'closed':'open'}" id="rp-bh-btn-${d}" onclick="toggleBizDay('${d}')">${d}</button></td>
+      <td><div class="biz-c-time-wrap" id="rp-bh-wrap-${d}" style="${isOff?'opacity:0.3;pointer-events:none;':''}">
+        <input type="text" id="rp-bh-c-${d}-s" placeholder="${esc(defS)||'시작'}" value="${esc(dh.customStart)}" maxlength="5">
+        <span class="biz-sep">~</span>
+        <input type="text" id="rp-bh-c-${d}-e" placeholder="${esc(defE)||'종료'}" value="${esc(dh.customEnd)}" maxlength="5">
+        ${hint}
+      </div></td>
+    </tr>`;
+  }).join('');
+  return `<div class="accordion-panel"><div class="rp-header"><div class="rp-header-text"><h2>📋 사업구역 조사·분석 보고서</h2><p>${esc(cafe.name)}${cafe.branch?' ('+esc(cafe.branch)+')':''} · ${esc(cafe.dong||'')} · ${esc(person)}</p></div><button class="rp-close" onclick="closeReport()">✕</button></div><div class="rp-body">
+<div class="rp-section"><div class="rp-section-title">📌 기본 정보</div><div class="rp-grid rp-grid-2">
+<div class="rp-field"><label>상호명</label><input type="text" id="rp-cafeName" readonly value="${esc(cafe.name+(cafe.branch?' ('+cafe.branch+')':''))}" style="background:#f0f4f8;color:#555;"></div>
+<div class="rp-field"><label>작성일자</label><input type="date" id="rp-writeDate" value="${esc(saved.writeDate||new Date().toISOString().slice(0,10))}"></div>
+<div class="rp-field"><label>작성자</label><input type="text" id="rp-members" placeholder="작성자 이름" value="${esc(saved.members)}"></div>
+<div class="rp-field" style="grid-column:1/-1;"><label>사업장 위치</label><input type="text" id="rp-location" readonly value="${esc(cafe.addr||'')}" style="background:#f0f4f8;color:#555;"></div>
+</div></div>
+<div class="rp-section"><div class="rp-section-title">🏪 업종 정보</div>
+<div class="rp-field"><label>사업장 규모</label><div class="cb-group">
+<label><input type="radio" name="rp-bizSize" value="소"${saved.bizSize==='소'?' checked':''}> 소 (직원 1~3명)</label>
+<label><input type="radio" name="rp-bizSize" value="중"${saved.bizSize==='중'?' checked':''}> 중 (직원 4~9명)</label>
+<label><input type="radio" name="rp-bizSize" value="대"${saved.bizSize==='대'?' checked':''}> 대 (직원 10명 이상)</label>
+</div></div></div>
+<div class="rp-section"><div class="rp-section-title">🔍 구역 조사</div><div class="rp-grid" style="gap:14px;">
+<div class="rp-field"><label>영업 시간</label>
+<div class="biz-default-row">
+  <span style="font-size:12px;color:#555;white-space:nowrap;">기본 시간</span>
+  <input type="text" id="rp-bh-default-s" placeholder="10:00" value="${esc(defS)}" maxlength="5" oninput="updateBizHintPlaceholders()">
+  <span class="biz-sep">~</span>
+  <input type="text" id="rp-bh-default-e" placeholder="21:00" value="${esc(defE)}" maxlength="5" oninput="updateBizHintPlaceholders()">
+  <span style="font-size:11px;color:#aaa;">(영업하는 모든 요일에 적용)</span>
+</div>
+<table class="biz-c-table"><tbody>${hoursRows}</tbody></table>
+<div style="margin-top:6px;font-size:11px;color:#bbb;">● 파란 원 = 영업 / 회색 원 = 휴무 · 클릭으로 전환 · 시간 칸을 비워두면 기본 시간 적용</div>
+</div>
+<div class="rp-field"><label>주차·접근성</label><input type="text" id="rp-parking" placeholder="주차 가능 여부, 접근성 등" value="${esc(saved.parking)}"></div>
+<div class="rp-field"><label>적절한 방문 시간대</label><input type="text" id="rp-visitTime" placeholder="예: 평일 오전 10~11시, 오후 2~4시" value="${esc(saved.visitTime)}"></div>
+<div class="rp-field"><label>봉사 대상</label><div class="cb-group">
+${targets.map(t=>`<label><input type="checkbox" name="rp-target" value="${t}"${(saved.target||[]).includes(t)?' checked':''}> ${t}</label>`).join('')}
+</div></div>
+<div class="rp-field"><label>업체 특징 (리뷰 및 컨설턴트 의견 참조)</label><textarea id="rp-bizFeature" placeholder="리뷰, 분위기, 특이사항 등을 입력하세요">${esc(saved.bizFeature)}</textarea></div>
+</div></div>
+<div class="rp-section"><div class="rp-section-title">💬 실전 준비</div><div class="rp-grid" style="gap:12px;">
+<div class="rp-field"><label>소개 멘트 / 대화 소재</label><textarea id="rp-intro" placeholder="첫 인사말, 자연스러운 대화 소재를 작성하세요">${esc(saved.intro)}</textarea></div>
+<div class="rp-field"><label>성서적 대화 전환 방식</label><textarea id="rp-scriptural" placeholder="성서적 주제로 자연스럽게 전환하는 방법을 작성하세요">${esc(saved.scriptural)}</textarea></div>
+<div class="rp-grid rp-grid-2">
+<div class="rp-field"><label>전할 수 있는 출판물</label><input type="text" id="rp-publication" placeholder="예: 파수대, 깨어라! 등" value="${esc(saved.publication)}"></div>
+<div class="rp-field"><label>옷 차 림</label><input type="text" id="rp-dress" placeholder="예: 단정한 복장, 캐주얼 등" value="${esc(saved.dress)}"></div>
+</div></div></div>
+<div class="rp-section"><div class="rp-section-title">📅 방문 기록</div><div style="overflow-x:auto;"><table class="visit-table"><thead><tr><th style="width:92px;">방문 일자</th><th>대화 요약</th><th style="width:70px;">방문자</th><th style="width:110px;">결 과</th></tr></thead><tbody id="rp-visitBody">${visitRowsHTML}</tbody></table></div><div style="margin-top:8px;text-align:right;"><button class="rp-btn rp-btn-secondary" onclick="addVisitRow()" style="padding:6px 16px;font-size:0.8rem;">+ 행 추가</button></div></div>
+<div class="rp-section"><div class="rp-section-title">📌 방문 후 후속 조치</div>
+<div class="rp-field"><label>담당 봉사자</label><input type="text" id="rp-assignedWorker" placeholder="담당자 이름" value="${esc(saved.assignedWorker)}"></div>
+</div>
+<div class="rp-section"><div class="rp-section-title">✏️ 보완할 점</div><div class="rp-field"><label>더 효과적인 방문을 위한 보완점 및 유의 사항</label><textarea id="rp-improvement" style="min-height:80px;" placeholder="예: 부재·거절 시 원인과 개선 방법, 다음 방문 준비 사항 등">${esc(saved.improvement)}</textarea></div></div>
+<hr class="rp-divider"><div class="rp-actions"><button class="rp-btn rp-btn-secondary" onclick="resetReport()">🗑 초기화</button><button class="rp-btn rp-btn-primary" onclick="saveReport()">💾 저장</button></div>
+<div class="rp-save-msg" id="rp-saveMsg" style="display:none;">✅ 저장되었습니다!</div>
+</div></div>`;
+}
+
+window.addVisitRow = function(data){
+  rpRowCount++;
+  const ri=rpRowCount;
+  const selResult=(data?.result||[])[0]||'';
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td><div class="date-wrap"><span class="date-icon">📅</span><span class="date-text" id="rp-vdate-lbl_${ri}">${data?.date||'달력 클릭'}</span><input type="date" id="rp-vdate_${ri}" value="${data?.date||''}" class="date-pick-input" onchange="window.updateDateLabel(${ri},this.value)"></div></td><td><input type="text" id="rp-vsummary_${ri}" placeholder="대화 내용 요약" value="${data?.summary||''}"></td><td><input type="text" id="rp-vvisitor_${ri}" placeholder="이름" value="${data?.visitor||''}"></td><td><select id="rp-result-sel_${ri}" class="result-select"><option value="">— 결과 —</option><option value="관심"${selResult==='관심'?' selected':''}>관심</option><option value="출판물 전달"${selResult==='출판물 전달'?' selected':''}>출판물 전달</option><option value="재방문"${selResult==='재방문'?' selected':''}>재방문</option><option value="거절"${selResult==='거절'?' selected':''}>거절</option></select></td>`;
+  document.getElementById('rp-visitBody').appendChild(tr);
+};
+
+window.openReport = function(cafe){
+  const key=cafeKey(cafe);
+  if(window.expandedKey===key){ window.expandedKey=null; currentCafe=null; window.render(); return; }
+  currentCafe=cafe;
+  window.expandedKey=key;
+  window.render();
+  setTimeout(()=>{ const acc=document.getElementById('accordionContainer'); if(acc)acc.scrollIntoView({behavior:'smooth',block:'nearest'}); },60);
+};
+
+window.closeReport = function(){
+  window.expandedKey=null; currentCafe=null; window.render();
+};
+
+window.saveReport = async function(){
+  if(!currentCafe) return;
+  const visits=[];
+  for(let i=1;i<=rpRowCount;i++){
+    const d=document.getElementById(`rp-vdate_${i}`), s=document.getElementById(`rp-vsummary_${i}`), v=document.getElementById(`rp-vvisitor_${i}`);
+    const rSel=document.getElementById(`rp-result-sel_${i}`);
+    visits.push({date:d?.value||'',summary:s?.value||'',visitor:v?.value||'',result:rSel?.value?[rSel.value]:[]});
+  }
+  const DAYS=['월','화','수','목','금','토','일'];
+  const bizHoursData={
+    defaultStart:document.getElementById('rp-bh-default-s')?.value||'',
+    defaultEnd:document.getElementById('rp-bh-default-e')?.value||'',
+    days:{}
+  };
+  DAYS.forEach(d=>{
+    const btn=document.getElementById(`rp-bh-btn-${d}`);
+    const isOff=btn?.classList.contains('closed')||false;
+    const s=document.getElementById(`rp-bh-c-${d}-s`);
+    const e=document.getElementById(`rp-bh-c-${d}-e`);
+    bizHoursData.days[d]={off:isOff,customStart:s?.value||'',customEnd:e?.value||''};
+  });
+  const data={
+    writeDate:document.getElementById('rp-writeDate').value,
+    members:document.getElementById('rp-members').value,
+    bizSize:(document.querySelector('input[name="rp-bizSize"]:checked')||{}).value||'',
+    bizHoursData,
+    parking:document.getElementById('rp-parking').value,
+    visitTime:document.getElementById('rp-visitTime').value,
+    target:getChecked('rp-target'),
+    bizFeature:document.getElementById('rp-bizFeature').value,
+    intro:document.getElementById('rp-intro').value,
+    scriptural:document.getElementById('rp-scriptural').value,
+    publication:document.getElementById('rp-publication').value,
+    dress:document.getElementById('rp-dress').value,
+    visits,
+    assignedWorker:document.getElementById('rp-assignedWorker').value,
+    improvement:document.getElementById('rp-improvement').value,
+    savedAt:new Date().toISOString(),
+    savedBy:window._currentUser?.nickname||''
+  };
+  try {
+    const key=cafeKey(currentCafe);
+    await window._setDoc(window._doc(window._db,'reports',key),data);
+    reportsCache[key]=data;
+    window.buildStats();
+    const msg=document.getElementById('rp-saveMsg');
+    if(msg){ msg.style.display='block'; setTimeout(()=>{ if(msg)msg.style.display='none'; },2200); }
+  } catch(e){ alert('저장 중 오류가 발생했습니다: '+e.message); }
+};
+
+window.resetReport = function(){
+  if(!confirm('이 카페의 보고서 내용을 초기화하시겠습니까?')) return;
+  document.querySelectorAll('#accordionContainer input[type="text"],#accordionContainer input[type="date"],#accordionContainer textarea').forEach(el=>{ if(!el.readOnly)el.value=''; });
+  document.querySelectorAll('#accordionContainer input[type="checkbox"],#accordionContainer input[type="radio"]').forEach(el=>el.checked=false);
+  document.querySelectorAll('#accordionContainer select').forEach(el=>el.selectedIndex=0);
+  document.querySelectorAll('#accordionContainer .date-pick-input').forEach(inp=>{
+    const ri=inp.id.replace('rp-vdate_','');
+    const lbl=document.getElementById(`rp-vdate-lbl_${ri}`);
+    if(lbl) lbl.textContent='달력 클릭';
+  });
+  const wd=document.getElementById('rp-writeDate'); if(wd)wd.value=new Date().toISOString().slice(0,10);
+};
+
+window.updateDateLabel = function(ri, val){
+  const lbl=document.getElementById(`rp-vdate-lbl_${ri}`);
+  if(lbl) lbl.textContent=val||'달력 클릭';
+};
+
+window.printReport = function(){
+  const orig=document.title; document.title=`사업구역_보고서_${currentCafe?.name||''}`; window.print(); document.title=orig;
+};
+
+window.toggleVisit = async function(cafe){
+  const key=cafeKey(cafe);
+  const vc=window.visitsCache||{};
+  const myName=window._currentUser?.nickname;
+  try {
+    const cur=vc[key];
+    const visitors=(cur?(cur.visitors||(cur.visitor?[cur.visitor]:[])):[] ).slice();
+    const idx=visitors.indexOf(myName);
+    if(idx>=0){ visitors.splice(idx,1); } else { visitors.push(myName); }
+    if(visitors.length===0){
+      await window._deleteDoc(window._doc(window._db,'visits',key));
+      delete window.visitsCache[key];
+    } else {
+      const data={visitors};
+      await window._setDoc(window._doc(window._db,'visits',key),data);
+      window.visitsCache[key]=data;
+    }
+    window.buildStats(); window.render();
+  } catch(e){ alert('오류: '+e.message); }
+};
+
+window.toggleBizDay = function(day){
+  const btn=document.getElementById(`rp-bh-btn-${day}`);
+  const wrap=document.getElementById(`rp-bh-wrap-${day}`);
+  if(!btn||!wrap) return;
+  const isNowClosed=btn.classList.contains('open');
+  btn.classList.toggle('open',!isNowClosed);
+  btn.classList.toggle('closed',isNowClosed);
+  wrap.style.opacity=isNowClosed?'0.3':'1';
+  wrap.style.pointerEvents=isNowClosed?'none':'';
+};
+
+window.updateBizHintPlaceholders = function(){
+  const s=document.getElementById('rp-bh-default-s')?.value||'시작';
+  const e=document.getElementById('rp-bh-default-e')?.value||'종료';
+  ['월','화','수','목','금','토','일'].forEach(d=>{
+    const si=document.getElementById(`rp-bh-c-${d}-s`);
+    const ei=document.getElementById(`rp-bh-c-${d}-e`);
+    if(si)si.placeholder=s;
+    if(ei)ei.placeholder=e;
+  });
+};
+
+document.addEventListener('keydown',e=>{ if(e.key==='Escape')window.closeReport(); });
+
+/* ═══════════════ 네이버 지도 ═══════════════ */
+const _MC={'하명수 형제':'#185FA5','임형규 형제':'#0F6E56','오주명 형제':'#993C1D','프랜차이즈':'#7F77DD'};
+let _nvm=null,_nmk=[],_npoly=[],_niw=null,_nsb=true,_gc=null;
+
+function _lgc(){if(_gc)return;try{_gc=JSON.parse(localStorage.getItem('anseong_geo_v1')||'{}')}catch(e){_gc={};}}
+function _sgc(){try{localStorage.setItem('anseong_geo_v1',JSON.stringify(_gc))}catch(e){}}
+
+function _g1(addr){
+  return new Promise(ok=>{
+    if(_gc[addr]){ok(_gc[addr]);return;}
+    const t=setTimeout(()=>ok(null),6000);
+    naver.maps.Service.geocode({query:addr},(st,res)=>{
+      clearTimeout(t);
+      if(st!==naver.maps.Service.Status.OK||!res.v2.addresses.length){ok(null);return;}
+      const p={lat:parseFloat(res.v2.addresses[0].y),lng:parseFloat(res.v2.addresses[0].x)};
+      _gc[addr]=p;ok(p);
+    });
+  });
+}
+
+async function _gall(rows,onP){
+  _lgc();
+  const res=[];
+  for(let i=0;i<rows.length;i+=10){
+    const b=rows.slice(i,i+10);
+    const pts=await Promise.all(b.map(r=>_g1(r.addr)));
+    b.forEach((r,j)=>res.push({...r,_pt:pts[j]}));
+    if(onP)onP(Math.min(i+10,rows.length),rows.length);
+    if(i+10<rows.length)await new Promise(r=>setTimeout(r,100));
+  }
+  _sgc();return res;
+}
+
+function _cx(O,A,B){return(A.x-O.x)*(B.y-O.y)-(A.y-O.y)*(B.x-O.x);}
+function _hull(pts){
+  if(pts.length<3)return pts.slice();
+  const p=pts.slice().sort((a,b)=>a.x!==b.x?a.x-b.x:a.y-b.y);
+  const lo=[],hi=[];
+  for(const q of p){while(lo.length>=2&&_cx(lo[lo.length-2],lo[lo.length-1],q)<=0)lo.pop();lo.push(q);}
+  for(let i=p.length-1;i>=0;i--){const q=p[i];while(hi.length>=2&&_cx(hi[hi.length-2],hi[hi.length-1],q)<=0)hi.pop();hi.push(q);}
+  hi.pop();lo.pop();return lo.concat(hi);
+}
+function _exph(hull,d=0.003){
+  if(!hull.length)return hull;
+  const cx=hull.reduce((s,p)=>s+p.x,0)/hull.length;
+  const cy=hull.reduce((s,p)=>s+p.y,0)/hull.length;
+  return hull.map(p=>{const dx=p.x-cx,dy=p.y-cy,n=Math.sqrt(dx*dx+dy*dy)||1;return{...p,x:p.x+dx/n*d,y:p.y+dy/n*d};});
+}
+
+function _clnv(){_nmk.forEach(m=>m.setMap(null));_nmk=[];_npoly.forEach(p=>p.setMap(null));_npoly=[];if(_niw){_niw.close();_niw=null;}}
+
+function _invm(){
+  if(_nvm)return;
+  _nvm=new naver.maps.Map('naverMap',{center:new naver.maps.LatLng(37.0083,127.2698),zoom:13,mapTypeControl:true,scaleControl:true});
+}
+
+window.renderMapView=async function(){
+  if(typeof naver==='undefined'||!naver.maps){
+    document.getElementById('mapGeoStatus').textContent='지도 API 로딩 중...';
+    setTimeout(()=>{if(currentTab==='지도')window.renderMapView();},700);return;
+  }
+  _invm();
+  const stEl=document.getElementById('mapGeoStatus');
+  _clnv();
+  const rows=getAllRows();
+  _lgc();
+  const need=rows.filter(r=>!_gc[r.addr]).length;
+  if(need>0)stEl.textContent='좌표 변환 중...';
+  const wp=await _gall(rows,(done,total)=>{stEl.textContent=`좌표 변환: ${done}/${total}`;});
+  stEl.textContent=`${wp.filter(r=>r._pt).length}/${rows.length}개 표시`;
+
+  const grp={};
+  wp.forEach(r=>{if(!r._pt)return;if(!grp[r.person])grp[r.person]=[];grp[r.person].push({x:r._pt.lng,y:r._pt.lat,row:r});});
+
+  Object.entries(grp).forEach(([person,pts])=>{
+    if(pts.length<3)return;
+    const hull=_exph(_hull(pts));
+    const color=_MC[person]||'#888';
+    const poly=new naver.maps.Polygon({map:_nsb?_nvm:null,paths:hull.map(p=>new naver.maps.LatLng(p.y,p.x)),fillColor:color,fillOpacity:0.1,strokeColor:color,strokeWeight:2.5,strokeOpacity:0.8,zIndex:1});
+    _npoly.push(poly);
+  });
+
+  const btnB=document.getElementById('btnBoundary');
+  if(btnB){btnB.textContent=_nsb?'🗺 구역 경계 ON':'🗺 구역 경계 OFF';btnB.classList.toggle('active',_nsb);}
+
+  wp.forEach(r=>{
+    if(!r._pt)return;
+    const color=_MC[r.person]||'#888';
+    const mk=new naver.maps.Marker({
+      position:new naver.maps.LatLng(r._pt.lat,r._pt.lng),map:_nvm,
+      icon:{content:`<div style="width:13px;height:13px;background:${color};border-radius:50%;border:2px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,0.3);cursor:pointer;" title="${r.name}"></div>`,anchor:new naver.maps.Point(6,6)},
+      zIndex:5
+    });
+    const iw=new naver.maps.InfoWindow({
+      content:`<div style="padding:10px 14px;font-family:'Noto Sans KR',sans-serif;min-width:180px;"><div style="font-weight:700;font-size:13px;margin-bottom:3px;">${r.name}${r.branch?' ('+r.branch+')':''}</div><div style="font-size:11px;color:#888;margin-bottom:5px;">${r.dong}</div><div style="font-size:11px;color:#555;line-height:1.5;">${(r.addr||'').replace('경기도 안성시 ','')}</div><div style="margin-top:7px;"><span style="font-size:10px;padding:2px 8px;border-radius:10px;background:${color}22;color:${color};font-weight:600;">${r.person}</span></div></div>`,
+      borderWidth:1,borderColor:color,backgroundColor:'#fff'
+    });
+    naver.maps.Event.addListener(mk,'click',()=>{if(_niw)_niw.close();iw.open(_nvm,mk);_niw=iw;});
+    _nmk.push(mk);
+  });
+
+  window.fitMapAll();
+};
+
+window.toggleMapBoundary=function(){
+  _nsb=!_nsb;
+  const btn=document.getElementById('btnBoundary');
+  if(btn){btn.textContent=_nsb?'🗺 구역 경계 ON':'🗺 구역 경계 OFF';btn.classList.toggle('active',_nsb);}
+  _npoly.forEach(p=>p.setMap(_nsb?_nvm:null));
+};
+
+window.fitMapAll=function(){
+  if(!_nvm||!_nmk.length)return;
+  const b=new naver.maps.LatLngBounds();
+  _nmk.forEach(m=>b.extend(m.getPosition()));
+  _nvm.fitBounds(b,{top:50,right:50,bottom:50,left:50});
+};
+</script>
+</body>
+</html>
