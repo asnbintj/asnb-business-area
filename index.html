@@ -1656,7 +1656,10 @@ window.updateDateLabel = function(ri, val){
 window.openDatePicker = function(wrap){
   const inp=wrap.querySelector('.date-pick-input');
   if(!inp) return;
-  try{ inp.showPicker(); }catch(e){ inp.removeAttribute('disabled'); inp.focus(); }
+  if(typeof inp.showPicker==='function'){
+    try{ inp.showPicker(); return; }catch(e){}
+  }
+  inp.click();
 };
 
 window.printReport = function(){
