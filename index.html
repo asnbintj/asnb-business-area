@@ -187,7 +187,7 @@ tr.accordion-open { background: #eef3fb !important; }
 .date-wrap { position: relative; display: inline-flex; align-items: center; gap: 4px; background: #eef3ff; border: 1.5px solid #c7d7f5; border-radius: 6px; padding: 5px 8px; cursor: pointer; min-width: 80px; }
 .date-icon { font-size: 13px; line-height: 1; }
 .date-text { font-size: 11px; color: #2563a8; font-weight: 500; white-space: nowrap; }
-.date-pick-input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+.date-pick-input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; pointer-events: none; }
 
 /* ── 결과 드롭다운 ── */
 .result-select { border: 1.5px solid #cbd5e0; border-radius: 5px; padding: 5px 4px; font-size: 12px; font-family: 'Noto Sans KR', sans-serif; background: #f8fafc; color: #1a202c; cursor: pointer; width: 100%; outline: none; }
@@ -1490,7 +1490,7 @@ function buildReportFormHTML(cafe, saved){
     const ri=idx+1;
     const selResult=(v.result||[])[0]||'';
     return `<tr>
-      <td><div class="date-wrap"><span class="date-icon">📅</span><span class="date-text" id="rp-vdate-lbl_${ri}">${esc(v.date)||'달력 클릭'}</span><input type="date" id="rp-vdate_${ri}" value="${esc(v.date)}" class="date-pick-input" onchange="window.updateDateLabel(${ri},this.value)"></div></td>
+      <td><div class="date-wrap" onclick="window.openDatePicker(this)"><span class="date-icon">📅</span><span class="date-text" id="rp-vdate-lbl_${ri}">${esc(v.date)||'달력 클릭'}</span><input type="date" id="rp-vdate_${ri}" value="${esc(v.date)}" class="date-pick-input" onchange="window.updateDateLabel(${ri},this.value)"></div></td>
       <td><input type="text" id="rp-vsummary_${ri}" placeholder="대화 내용 요약" value="${esc(v.summary)}"></td>
       <td><input type="text" id="rp-vvisitor_${ri}" placeholder="이름" value="${esc(v.visitor)}"></td>
       <td><select id="rp-result-sel_${ri}" class="result-select"><option value="">— 결과 —</option><option value="관심"${'관심'===selResult?' selected':''}>관심</option><option value="출판물 전달"${'출판물 전달'===selResult?' selected':''}>출판물 전달</option><option value="재방문"${'재방문'===selResult?' selected':''}>재방문</option><option value="거절"${'거절'===selResult?' selected':''}>거절</option></select></td>
@@ -1554,7 +1554,7 @@ ${targets.map(t=>`<label><input type="checkbox" name="rp-target" value="${t}"${(
 <div class="rp-field"><label>전할 수 있는 출판물</label><input type="text" id="rp-publication" placeholder="예: 파수대, 깨어라! 등" value="${esc(saved.publication)}"></div>
 <div class="rp-field"><label>옷 차 림</label><input type="text" id="rp-dress" placeholder="예: 단정한 복장, 캐주얼 등" value="${esc(saved.dress)}"></div>
 </div></div></div>
-<div class="rp-section"><div class="rp-section-title">📅 방문 기록</div><div style="overflow-x:auto;"><table class="visit-table"><thead><tr><th style="width:92px;">방문 일자</th><th>대화 요약</th><th style="width:70px;">방문자</th><th style="width:110px;">결 과</th></tr></thead><tbody id="rp-visitBody">${visitRowsHTML}</tbody></table></div><div style="margin-top:8px;text-align:right;"><button class="rp-btn rp-btn-secondary" onclick="addVisitRow()" style="padding:6px 16px;font-size:0.8rem;">+ 행 추가</button></div></div>
+<div class="rp-section"><div class="rp-section-title">📅 방문 기록</div><div style="overflow-x:auto;"><table class="visit-table"><thead><tr><th style="width:92px;">방문 일자</th><th>대화 요약</th><th style="width:110px;">방문자</th><th style="width:110px;">결 과</th></tr></thead><tbody id="rp-visitBody">${visitRowsHTML}</tbody></table></div><div style="margin-top:8px;text-align:right;"><button class="rp-btn rp-btn-secondary" onclick="addVisitRow()" style="padding:6px 16px;font-size:0.8rem;">+ 행 추가</button></div></div>
 <div class="rp-section"><div class="rp-section-title">📌 방문 후 후속 조치</div>
 <div class="rp-field"><label>담당 봉사자</label><input type="text" id="rp-assignedWorker" placeholder="담당자 이름" value="${esc(saved.assignedWorker)}"></div>
 </div>
@@ -1569,7 +1569,7 @@ window.addVisitRow = function(data){
   const ri=rpRowCount;
   const selResult=(data?.result||[])[0]||'';
   const tr=document.createElement('tr');
-  tr.innerHTML=`<td><div class="date-wrap"><span class="date-icon">📅</span><span class="date-text" id="rp-vdate-lbl_${ri}">${data?.date||'달력 클릭'}</span><input type="date" id="rp-vdate_${ri}" value="${data?.date||''}" class="date-pick-input" onchange="window.updateDateLabel(${ri},this.value)"></div></td><td><input type="text" id="rp-vsummary_${ri}" placeholder="대화 내용 요약" value="${data?.summary||''}"></td><td><input type="text" id="rp-vvisitor_${ri}" placeholder="이름" value="${data?.visitor||''}"></td><td><select id="rp-result-sel_${ri}" class="result-select"><option value="">— 결과 —</option><option value="관심"${selResult==='관심'?' selected':''}>관심</option><option value="출판물 전달"${selResult==='출판물 전달'?' selected':''}>출판물 전달</option><option value="재방문"${selResult==='재방문'?' selected':''}>재방문</option><option value="거절"${selResult==='거절'?' selected':''}>거절</option></select></td>`;
+  tr.innerHTML=`<td><div class="date-wrap" onclick="window.openDatePicker(this)"><span class="date-icon">📅</span><span class="date-text" id="rp-vdate-lbl_${ri}">${data?.date||'달력 클릭'}</span><input type="date" id="rp-vdate_${ri}" value="${data?.date||''}" class="date-pick-input" onchange="window.updateDateLabel(${ri},this.value)"></div></td><td><input type="text" id="rp-vsummary_${ri}" placeholder="대화 내용 요약" value="${data?.summary||''}"></td><td><input type="text" id="rp-vvisitor_${ri}" placeholder="이름" value="${data?.visitor||''}"></td><td><select id="rp-result-sel_${ri}" class="result-select"><option value="">— 결과 —</option><option value="관심"${selResult==='관심'?' selected':''}>관심</option><option value="출판물 전달"${selResult==='출판물 전달'?' selected':''}>출판물 전달</option><option value="재방문"${selResult==='재방문'?' selected':''}>재방문</option><option value="거절"${selResult==='거절'?' selected':''}>거절</option></select></td>`;
   document.getElementById('rp-visitBody').appendChild(tr);
 };
 
@@ -1652,6 +1652,11 @@ window.resetReport = function(){
 window.updateDateLabel = function(ri, val){
   const lbl=document.getElementById(`rp-vdate-lbl_${ri}`);
   if(lbl) lbl.textContent=val||'달력 클릭';
+};
+window.openDatePicker = function(wrap){
+  const inp=wrap.querySelector('.date-pick-input');
+  if(!inp) return;
+  try{ inp.showPicker(); }catch(e){ inp.removeAttribute('disabled'); inp.focus(); }
 };
 
 window.printReport = function(){
