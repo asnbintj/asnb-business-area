@@ -397,7 +397,8 @@ tr.accordion-open { background: #eef3fb !important; }
 .map-ctrl-btn { font-size: 12px; padding: 5px 12px; border: 1.5px solid #ddd; border-radius: 20px; background: #fff; cursor: pointer; font-family: inherit; color: #555; transition: all 0.12s; white-space: nowrap; }
 .map-ctrl-btn:hover { border-color: #aaa; color: #222; }
 .map-ctrl-btn.active { background: #2563a8; color: #fff; border-color: #2563a8; }
-#naverMap { width: 100%; height: calc(100vh - 160px); min-height: 480px; border-radius: 12px; border: 1px solid #e0e0d8; }
+#naverMap { width: 100%; height: calc(100vh - 160px); min-height: 400px; border-radius: 12px; border: 1px solid #e0e0d8; }
+@media (max-width: 680px) { #naverMap { height: calc(100vh - 230px); min-height: 340px; } }
 </style>
 </head>
 <body>
@@ -455,68 +456,94 @@ tr.accordion-open { background: #eef3fb !important; }
   <div id="help-panel" style="display:none;">
     <div class="help-wrap">
       <div class="help-section-title">📱 안성 남부 카페 구역 · 사용 안내</div>
+
       <div class="help-block">
         <div class="help-block-title">🔐 로그인 방법</div>
-        <p>등록된 이름과 비밀번호(기본: 0000)를 입력해 로그인합니다.</p>
+        <p>등록된 이름과 비밀번호를 입력해 로그인합니다.</p>
         <p>로그인 후 본인 이름으로 방문 표시와 보고서가 저장됩니다.</p>
+        <p>비밀번호는 우측 상단 <b>🔑 비번 변경</b> 버튼으로 언제든 바꿀 수 있습니다.</p>
       </div>
+
       <div class="help-block">
-        <div class="help-block-title">📋 탭 구분</div>
-        <ul>
-          <li><b>전체</b> – 안성 남부 전체 카페 목록</li>
-          <li><b>하명수 / 임형규 / 오주명 형제</b> – 각 담당자별 카페</li>
-          <li><b>프랜차이즈</b> – 프랜차이즈 카페 목록</li>
-        </ul>
+        <div class="help-block-title">📊 담당자 카드 필터</div>
+        <p>화면 상단에 담당자별 카드(하명수 / 임형규 / 오주명 / 프랜차이즈)가 표시됩니다.</p>
+        <p><b>카드를 클릭</b>하면 해당 담당자의 카페만 필터링됩니다. 카드에 <b>✓ 선택</b> 표시가 나타납니다.</p>
+        <p>같은 카드를 다시 클릭하거나 상단 <b>전체</b> 탭을 누르면 전체 목록으로 돌아옵니다.</p>
+        <p>각 카드에는 담당 카페 수와 보고서 작성 건수가 함께 표시됩니다.</p>
       </div>
+
       <div class="help-block">
         <div class="help-block-title">🔍 검색 &amp; 필터</div>
         <p>상단 검색창에 상호명·주소·동 이름을 입력하면 실시간으로 필터링됩니다.</p>
-        <p>탭 아래 <b>동/면 버튼</b>을 누르면 해당 지역 카페만 표시됩니다.</p>
+        <p>카드 필터 아래 <b>동/면 버튼</b>을 누르면 해당 지역 카페만 표시됩니다.</p>
+        <p><b>정렬</b> 버튼으로 번호순 / 카페명순 / 담당자순으로 정렬할 수 있습니다.</p>
       </div>
-      <div class="help-block">
-        <div class="help-block-title">📊 통계 카드</div>
-        <p>화면 상단 카드에는 담당자별 카페 수와 보고서 작성 건수가 표시됩니다.</p>
-        <p><b>방문 현황</b> 카드는 현재 방문 중인 카페 수를 실시간으로 보여줍니다.</p>
-      </div>
+
       <div class="help-block">
         <div class="help-block-title">🚶 방문 참여 기능</div>
-        <p><b>방문 참여</b> 버튼을 누르면 방문 중 표시가 됩니다. 목록에 이름 배지가 나타나고 통계가 업데이트됩니다.</p>
+        <p>카페 행의 <b>방문 참여</b> 버튼을 누르면 방문자를 지정할 수 있습니다.</p>
+        <p>지정된 방문자 이름이 목록에 배지로 표시되고, 통계 카드가 업데이트됩니다.</p>
         <p>방문을 마치면 <b>🚶 방문 중</b> 버튼을 다시 눌러 해제하세요.</p>
-        <p>여러 명이 동시에 참여하면 모든 이름이 함께 표시됩니다.</p>
+        <p>상단 <b>🚶 내 방문 현황</b> 탭 또는 방문 현황 카드를 클릭하면 내가 방문 중인 카페만 모아볼 수 있습니다.</p>
       </div>
+
+      <div class="help-block">
+        <div class="help-block-title">🔄 구역 변경 / 폐업 처리</div>
+        <p>카페 행의 <b>🔄 구역</b> 버튼을 누르면 담당자 변경 또는 폐업 처리를 할 수 있습니다.</p>
+        <ul>
+          <li><b>담당자 변경</b> – 잘못 배정된 구역을 다른 담당자로 이동합니다.</li>
+          <li><b>🗑 폐업 삭제</b> – 폐업한 카페를 목록에서 제외합니다.</li>
+        </ul>
+        <p style="color:#888;font-size:12px;">변경 사항은 모든 사용자에게 실시간으로 반영됩니다.</p>
+      </div>
+
       <div class="help-block">
         <div class="help-block-title">📝 보고서 작성 순서</div>
         <ol>
-          <li>카페 카드에서 <b>📋 작성</b> 버튼을 누릅니다.</li>
-          <li>펼쳐지는 폼에 내용을 작성합니다.</li>
+          <li>카페 행에서 <b>📋 작성</b> 버튼을 누릅니다.</li>
+          <li>바로 아래 펼쳐지는 폼에 내용을 작성합니다.</li>
           <li><b>💾 저장</b> 버튼을 눌러야 최종 저장됩니다.</li>
           <li>저장된 카페는 <b>📝 수정</b> 버튼으로 표시됩니다.</li>
         </ol>
-        <p style="margin-top:8px;color:#888;">항목: 기본정보 · 업종정보 · 영업시간 · 구역조사 · 방문기록 · 후속조치 · 보완사항</p>
+        <p style="margin-top:8px;color:#888;">작성 항목: 기본정보 · 업종정보 · 영업시간 · 구역조사 · 실전준비 · 방문기록 · 후속조치 · 보완사항</p>
       </div>
+
       <div class="help-block">
         <div class="help-block-title">🕐 영업 시간 입력 방법</div>
-        <p><b>기본 시간</b>에 대부분 요일의 영업 시간을 입력합니다. (예: 10:00 ~ 21:00)</p>
+        <p><b>기본 시간</b>에 대부분 요일의 공통 영업 시간을 입력합니다. (예: 10:00 ~ 21:00)</p>
         <p>요일 버튼(월~일)을 클릭해 영업일/휴무일을 전환합니다.</p>
         <ul>
-          <li><b style="color:#2563a8;">● 파랑</b> = 영업일</li>
-          <li><b style="color:#9ca3af;">● 회색</b> = 휴무일</li>
+          <li><b style="color:#2563a8;">● 파랑</b> = 영업일 &nbsp;|&nbsp; <b style="color:#9ca3af;">● 회색</b> = 휴무일</li>
         </ul>
-        <p>시간 칸을 비워두면 기본 시간이 자동 적용됩니다.</p>
+        <p>특정 요일의 시간 칸을 비워두면 기본 시간이 자동 적용됩니다.</p>
       </div>
+
       <div class="help-block">
         <div class="help-block-title">📅 방문 기록 작성 방법</div>
-        <p>보고서 하단 <b>방문 기록</b> 표에서 방문일·대화 요약·방문자·결과를 입력합니다.</p>
+        <p>보고서의 <b>방문 기록</b> 표에서 방문일·대화 요약·방문자·결과를 입력합니다.</p>
         <p><b>📅 달력 클릭</b>을 누르면 달력이 열려 날짜를 선택할 수 있습니다.</p>
         <p><b>+ 행 추가</b> 버튼으로 방문 기록을 늘릴 수 있습니다.</p>
       </div>
+
+      <div class="help-block">
+        <div class="help-block-title">🗺 지도 기능</div>
+        <p>상단 <b>🗺 지도</b> 탭을 누르면 전체 카페 위치가 지도에 표시됩니다.</p>
+        <ul>
+          <li><b>마커 클릭</b> – 카페 정보와 <b>네이버 지도 →</b> 링크가 팝업으로 표시됩니다.</li>
+          <li><b>📍 내 위치</b> – 현재 내 GPS 위치를 지도에 파란 점으로 표시합니다.</li>
+          <li><b>🗺 구역 경계</b> – 담당자별 구역 경계선을 켜고 끌 수 있습니다.</li>
+          <li><b>담당자 표시 버튼</b> – 특정 담당자의 마커와 경계를 개별적으로 보이거나 숨깁니다.</li>
+          <li><b>전체 보기</b> – 모든 마커가 보이도록 지도 범위를 자동 조정합니다.</li>
+        </ul>
+        <p>목록의 <b>지도 →</b> 링크를 누르면 해당 카페를 네이버 지도에서 바로 검색합니다.</p>
+      </div>
+
       <div class="help-block">
         <div class="help-block-title">💡 알아두면 좋은 사항</div>
         <ul>
-          <li>모든 방문 상태·보고서는 실시간으로 다른 사용자와 공유됩니다.</li>
+          <li>방문 상태·보고서·구역 변경은 모두 실시간으로 다른 사용자와 공유됩니다.</li>
           <li>보고서 폼은 <b>✕ 버튼</b> 또는 <b>Esc 키</b>로 닫을 수 있습니다.</li>
-          <li><b>🖨 인쇄</b> 버튼으로 현재 보고서를 출력할 수 있습니다.</li>
-          <li>검색·필터·탭을 활용하면 담당 카페를 빠르게 찾을 수 있습니다.</li>
+          <li>지도는 처음 열 때 주소 변환이 진행되며, 이후에는 빠르게 로드됩니다.</li>
         </ul>
       </div>
     </div>
@@ -1414,7 +1441,7 @@ window.render = function() {
       const visitBtn=`<button class="visit-toggle-btn ${isMyVisit?'active':''}" onclick='openVisitModal(${JSON.stringify(r)})'>${isMyVisit?'🚶 방문 중':'방문 참여'}</button>`;
       const personBadgeMobile=(isFranchise||isAll)?`<span class="person-badge person-${pk}">${r.person==="프랜차이즈"?(r.person_name||r.person):r.person}</span>`:"";
       const branchMobile=r.branch?`<span class="mobile-branch">(${r.branch})</span>`:"";
-      const mapUrl=`https://map.naver.com/v5/search/${encodeURIComponent(r.name+' '+r.addr)}`;
+      const mapUrl=`https://map.naver.com/p/search/${encodeURIComponent(r.addr)}`;
       const ovBtn=`<button class="report-btn" onclick='window.openOverrideModal(${JSON.stringify(r)})' title="구역 변경 / 폐업 삭제" style="border-color:#c5c1f5;color:#534AB7;">🔄 구역</button>`;
       let html=`<tr class="${isExpanded?'accordion-open':''}">
         <td data-label="번호"><span class="no-badge">${r.no}</span></td>
@@ -1806,7 +1833,7 @@ window.renderMapView=async function(){
     if(!r._pt)return;
     const color=_MC[r.person]||'#888';
     const on=_pv[r.person]!==false;
-    const naverUrl=`https://map.naver.com/v5/search/${encodeURIComponent(r.name+' '+r.addr)}`;
+    const naverUrl=`https://map.naver.com/p/search/${encodeURIComponent(r.addr)}`;
     const mk=new naver.maps.Marker({
       position:new naver.maps.LatLng(r._pt.lat,r._pt.lng),
       map:on?_nvm:null,
