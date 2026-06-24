@@ -998,7 +998,7 @@ window.loadAllReports = async function() {
 };
 
 /* ── 탭 / 필터 ── */
-const TABS_ORDER = ["전체","하명수 형제","임형규 형제","오주명 형제","프랜차이즈"];
+const TABS_ORDER = ["전체"];
 let currentTab = "전체", dongFilter = "", currentCafe = null;
 let currentSort = { key: 'no', dir: 1 };
 window.expandedKey = null;
@@ -1336,22 +1336,41 @@ function buildSortButtons() {
 window.buildStats = function() {
   const wrap = document.getElementById("stats-row"); wrap.innerHTML="";
   const allRows = getAllRows();
-  ["하명수 형제","임형규 형제","오주명 형제","프랜차이즈"].forEach((p,i)=>{
-    const color=["blue","teal","coral","purple"][i];
+  const _PC={"하명수 형제":"#185FA5","임형규 형제":"#0F6E56","오주명 형제":"#993C1D","프랜차이즈":"#7F77DD"};
+  const _CC={"하명수 형제":"blue","임형규 형제":"teal","오주명 형제":"coral","프랜차이즈":"purple"};
+  ["하명수 형제","임형규 형제","오주명 형제","프랜차이즈"].forEach((p)=>{
+    const color=_PC[p],cls=_CC[p];
     const pRows=allRows.filter(r=>r.person===p);
     const total=pRows.length;
     const done=pRows.filter(r=>!!reportsCache[cafeKey(r)]).length;
+    const isActive=currentTab===p;
     const c=document.createElement("div"); c.className="stat-card";
-    c.innerHTML=`<div class="stat-label">${p}</div><div class="stat-value ${color}">${total}</div><div style="font-size:11px;color:#aaa;margin-top:2px;">보고서 작성: ${done}건</div>`;
+    c.style.cssText=`cursor:pointer;transition:all 0.15s;${isActive?`border-color:${color};border-width:2px;background:${color}0d;box-shadow:0 2px 10px ${color}33;`:''}`;
+    c.innerHTML=`
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;">
+        <div class="stat-label" style="${isActive?`color:${color};font-weight:700;`:''}">${p}</div>
+        <span style="font-size:10px;${isActive?`background:${color};color:#fff;padding:1px 8px;border-radius:10px;font-weight:600;`:`color:#ddd;`}">${isActive?'✓ 선택':'필터'}</span>
+      </div>
+      <div class="stat-value ${cls}">${total}</div>
+      <div style="font-size:11px;color:#aaa;margin-top:2px;">보고서 작성: ${done}건</div>`;
+    c.onclick=()=>{ currentTab=(currentTab===p)?"전체":p; dongFilter=""; window.buildTabs(); window.buildStats(); window.render(); };
     wrap.appendChild(c);
   });
-  const allCafes = getAllRows();
-  const vc = window.visitsCache || {};
-  function getVisitors(key){ const d=vc[key]; if(!d)return []; return d.visitors||( d.visitor?[d.visitor]:[] ); }
-  const visitingCount = allCafes.filter(r => getVisitors(cafeKey(r)).length > 0).length;
-  const notVisiting = allCafes.length - visitingCount;
-  const v = document.createElement("div"); v.className="stat-card";
-  v.innerHTML=`<div class="stat-label">방문 현황</div><div class="stat-value" style="color:#16a34a;">${visitingCount}</div><div style="font-size:11px;color:#aaa;margin-top:2px;">방문 중 · 미방문: ${notVisiting}개</div>`;
+  const vc=window.visitsCache||{};
+  function getVisitors(key){const d=vc[key];if(!d)return[];return d.visitors||(d.visitor?[d.visitor]:[]);}
+  const visitingCount=allRows.filter(r=>getVisitors(cafeKey(r)).length>0).length;
+  const notVisiting=allRows.length-visitingCount;
+  const isVisitActive=currentTab==="내 방문 현황";
+  const v=document.createElement("div"); v.className="stat-card";
+  v.style.cssText=`cursor:pointer;transition:all 0.15s;${isVisitActive?'border-color:#16a34a;border-width:2px;background:#f0fdf433;box-shadow:0 2px 10px #16a34a33;':''}`;
+  v.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;">
+      <div class="stat-label" style="${isVisitActive?'color:#16a34a;font-weight:700;':''}">방문 현황</div>
+      <span style="font-size:10px;${isVisitActive?'background:#16a34a;color:#fff;padding:1px 8px;border-radius:10px;font-weight:600;':'color:#ddd;'}">${isVisitActive?'✓ 선택':'필터'}</span>
+    </div>
+    <div class="stat-value" style="color:#16a34a;">${visitingCount}</div>
+    <div style="font-size:11px;color:#aaa;margin-top:2px;">방문 중 · 미방문: ${notVisiting}개</div>`;
+  v.onclick=()=>{currentTab=(currentTab==="내 방문 현황")?"전체":"내 방문 현황";dongFilter="";window.buildTabs();window.buildStats();window.render();};
   wrap.appendChild(v);
 };
 
