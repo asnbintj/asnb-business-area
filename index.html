@@ -1979,9 +1979,10 @@ window.renderMapView=async function(){
     const on=_pv[r.person]!==false;
     const naverUrl=`https://map.naver.com/p/search/${encodeURIComponent(r.addr)}`;
     const customBadge=r._customId?`<span style="font-size:10px;background:#dcfce7;color:#16a34a;padding:1px 6px;border-radius:8px;display:inline-block;margin-bottom:4px;">직접 추가</span><br>`:'';
-    const keyJ=JSON.stringify(rKey);
-    const nameJ=JSON.stringify(r.name);
-    const cidJ=JSON.stringify(r._customId||'');
+    const _esc=s=>JSON.stringify(s).replace(/"/g,'&quot;');
+    const keyJ=_esc(rKey);
+    const nameJ=_esc(r.name);
+    const cidJ=_esc(r._customId||'');
     const deleteBtnHtml=isAdmin?`<button onclick="window.deleteCafeFromMap(${keyJ},${nameJ},${cidJ})" style="margin-top:6px;font-size:10px;padding:3px 8px;border:1px solid #fca5a5;border-radius:5px;background:#fff;color:#dc2626;cursor:pointer;font-family:'Noto Sans KR',sans-serif;width:100%;">🗑 ${r._customId?'삭제':'폐업 삭제'}</button>`:'';
     const mk=new naver.maps.Marker({
       position:new naver.maps.LatLng(r._pt.lat,r._pt.lng),
@@ -2229,7 +2230,8 @@ window.saveNewCafe=async function(){
         const rKey=cafeKey(r);
         const color=_MC[person]||'#888';
         const naverUrl=`https://map.naver.com/p/search/${encodeURIComponent(addr)}`;
-        const keyJ=JSON.stringify(rKey);const nameJ=JSON.stringify(name);const cidJ=JSON.stringify(id);
+        const _esc2=s=>JSON.stringify(s).replace(/"/g,'&quot;');
+        const keyJ=_esc2(rKey);const nameJ=_esc2(name);const cidJ=_esc2(id);
         const deleteBtnHtml=`<button onclick="window.deleteCafeFromMap(${keyJ},${nameJ},${cidJ})" style="margin-top:6px;font-size:10px;padding:3px 8px;border:1px solid #fca5a5;border-radius:5px;background:#fff;color:#dc2626;cursor:pointer;font-family:'Noto Sans KR',sans-serif;width:100%;">🗑 삭제</button>`;
         const mk=new naver.maps.Marker({
           position:new naver.maps.LatLng(pt.lat,pt.lng),
