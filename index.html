@@ -1957,11 +1957,10 @@ window.renderMapView=async function(){
     _npoly.push({poly,person});
   });
 
-  // 전체 구역 경계 (점선 검정 테두리)
+  // 전체 구역 경계 (주황 테두리 + 연한 주황 채우기)
   if(_zbc['전체']&&(_zbc['전체'].paths||[]).length>=3){
     const ll=_zbc['전체'].paths.map(p=>new naver.maps.LatLng(p.lat,p.lng));
-    ll.push(ll[0]);
-    const totalPoly=new naver.maps.Polyline({map:_nsb?_nvm:null,path:ll,strokeColor:'#374151',strokeWeight:3,strokeOpacity:0.75,strokeStyle:'shortdash',zIndex:0});
+    const totalPoly=new naver.maps.Polygon({map:_nsb?_nvm:null,paths:ll,fillColor:'#f97316',fillOpacity:0.08,strokeColor:'#f97316',strokeWeight:3,strokeOpacity:0.85,strokeStyle:'shortdash',zIndex:0});
     _npoly.push({poly:totalPoly,person:'전체'});
   }
 
@@ -2038,15 +2037,15 @@ window.openDrawPanel=function(){
       `<button class="map-ctrl-btn" onclick="window.resetZoneBound('${person}')" title="${person} 구역 초기화" style="border-color:${color};color:${color};font-size:10px;">↺ 초기화</button>`;
   }).join('');
   const hasTotal=_zbc&&(_zbc['전체']?.paths||[]).length>=3;
-  const totalBtn=`<button class="map-ctrl-btn" onclick="window.startZoneDraw('전체')" style="background:#374151;color:#fff;border-color:#374151;">전체 구역 <span style="font-size:10px;opacity:0.85;">${hasTotal?'✏ 수정':'+ 신규'}</span></button>`+
-    `<button class="map-ctrl-btn" onclick="window.resetZoneBound('전체')" style="border-color:#374151;color:#374151;font-size:10px;">↺ 삭제</button>`;
+  const totalBtn=`<button class="map-ctrl-btn" onclick="window.startZoneDraw('전체')" style="background:#f97316;color:#fff;border-color:#f97316;">전체 구역 <span style="font-size:10px;opacity:0.85;">${hasTotal?'✏ 수정':'+ 신규'}</span></button>`+
+    `<button class="map-ctrl-btn" onclick="window.resetZoneBound('전체')" style="border-color:#f97316;color:#f97316;font-size:10px;">↺ 삭제</button>`;
   btns.innerHTML=personBtns+`<div style="width:100%;height:1px;background:#e5e7eb;margin:8px 0;flex-basis:100%;"></div>`+totalBtn;
 };
 
 window.startZoneDraw=function(person){
   window.cancelZoneDraw();
   _drawMode=true;_drawPerson=person;_drawPts=[];
-  const color=person==='전체'?'#374151':(_MC[person]||'#888');
+  const color=person==='전체'?'#f97316':(_MC[person]||'#888');
   // 기존 경계 불러오기
   if(_zbc&&(_zbc[person]?.paths||[]).length>=3){
     _drawPts=_zbc[person].paths.map(p=>new naver.maps.LatLng(p.lat,p.lng));
@@ -2088,7 +2087,7 @@ window.undoLastPt=function(){
   const m=_drawTmpMks.pop();if(m)m.setMap(null);
   if(_drawPolyPrev){_drawPolyPrev.setMap(null);_drawPolyPrev=null;}
   if(_drawPts.length>=3){
-    const color=_drawPerson==='전체'?'#374151':(_MC[_drawPerson]||'#888');
+    const color=_drawPerson==='전체'?'#f97316':(_MC[_drawPerson]||'#888');
     _drawPolyPrev=new naver.maps.Polygon({map:_nvm,paths:_drawPts,fillColor:color,fillOpacity:0.2,strokeColor:color,strokeWeight:2.5,strokeOpacity:0.9,zIndex:15});
   }
   document.getElementById('drawStatusText').textContent=`[${(_drawPerson||'').replace(' 형제','')}] ${_drawPts.length}개 꼭지점 · ✓완료로 저장`;
@@ -2118,8 +2117,7 @@ window.finishZoneDraw=async function(){
     let poly;
     if(pn==='전체'){
       const ll=paths.map(p=>new naver.maps.LatLng(p.lat,p.lng));
-      ll.push(ll[0]);
-      poly=new naver.maps.Polyline({map:_nsb?_nvm:null,path:ll,strokeColor:'#374151',strokeWeight:3,strokeOpacity:0.75,strokeStyle:'shortdash',zIndex:0});
+      poly=new naver.maps.Polygon({map:_nsb?_nvm:null,paths:ll,fillColor:'#f97316',fillOpacity:0.08,strokeColor:'#f97316',strokeWeight:3,strokeOpacity:0.85,strokeStyle:'shortdash',zIndex:0});
     }else{
       const color=_MC[pn]||'#888';
       const on=_pv[pn]!==false;
