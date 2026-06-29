@@ -31,8 +31,8 @@ body { font-family: 'Noto Sans KR', sans-serif; background: #f5f5f0; color: #1a1
 .tab-btn[data-person="오주명 형제"].active .count { background: #993C1D; }
 .tab-btn[data-person="프랜차이즈"].active { color: #7F77DD; border-bottom-color: #7F77DD; }
 .tab-btn[data-person="프랜차이즈"].active .count { background: #7F77DD; }
-.tab-btn[data-person="내 방문 현황"].active { color: #16a34a; border-bottom-color: #16a34a; }
-.tab-btn[data-person="내 방문 현황"].active .count { background: #16a34a; }
+.tab-btn[data-person="방문 현황"].active { color: #16a34a; border-bottom-color: #16a34a; }
+.tab-btn[data-person="방문 현황"].active .count { background: #16a34a; }
 
 main { padding: 16px; max-width: 960px; margin: 0 auto; }
 .stats-row { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
@@ -491,7 +491,7 @@ tr.accordion-open { background: #eef3fb !important; }
         <p>카페 행의 <b>방문 참여</b> 버튼을 누르면 방문자를 지정할 수 있습니다.</p>
         <p>지정된 방문자 이름이 목록에 배지로 표시되고, 통계 카드가 업데이트됩니다.</p>
         <p>방문을 마치면 <b>🚶 방문 중</b> 버튼을 다시 눌러 해제하세요.</p>
-        <p>상단 <b>🚶 내 방문 현황</b> 탭 또는 방문 현황 카드를 클릭하면 내가 방문 중인 카페만 모아볼 수 있습니다.</p>
+        <p>상단 <b>🚶 방문 현황</b> 탭 또는 방문 현황 카드를 클릭하면 내가 방문 중인 카페만 모아볼 수 있습니다.</p>
       </div>
 
       <div class="help-block">
@@ -638,7 +638,7 @@ tr.accordion-open { background: #eef3fb !important; }
         </select>
       </div>
       <div class="modal-btn-row" style="justify-content:space-between;margin-top:20px;">
-        <button class="modal-btn" style="background:#dc2626;color:#fff;" onclick="window.confirmDeleteCafe()">🗑 폐업 삭제</button>
+        <button class="modal-btn" id="overrideDeleteBtn" style="background:#dc2626;color:#fff;">🗑 폐업 삭제</button>
         <div style="display:flex;gap:8px;">
           <button class="modal-btn modal-btn-secondary" onclick="window.closeOverrideModal()">취소</button>
           <button class="modal-btn modal-btn-primary" onclick="window.confirmOverrideModal()">변경 저장</button>
@@ -1171,19 +1171,6 @@ window.buildTabs = function() {
     btn.onclick = () => { currentTab=t; dongFilter=""; window.buildTabs(); window.render(); };
     wrap.appendChild(btn);
   });
-  const myName = window._currentUser?.nickname;
-  const myVisitCnt = getAllRows().filter(r => {
-    const cur = (window.visitsCache||{})[cafeKey(r)];
-    const visitors = cur ? (cur.visitors||(cur.visitor?[cur.visitor]:[])) : [];
-    return visitors.length > 0;
-  }).length;
-  const visitTab = document.createElement("button");
-  visitTab.className = "tab-btn"+(currentTab==="내 방문 현황"?" active":"");
-  visitTab.dataset.person = "내 방문 현황";
-  visitTab.innerHTML = `🚶 내 방문 현황 <span class="count">${myVisitCnt}</span>`;
-  visitTab.onclick = () => { currentTab="내 방문 현황"; dongFilter=""; window.buildTabs(); window.render(); };
-  wrap.appendChild(visitTab);
-
   const mapBtn = document.createElement("button");
   mapBtn.className = "tab-btn"+(currentTab==="지도"?" active":"");
   mapBtn.style.cssText = "color:#0F6E56;";
@@ -1274,6 +1261,16 @@ window.openOverrideModal = function(cafe) {
   document.getElementById('overrideModalCafeName').textContent = `📍 ${cafe.name}${cafe.branch?' ('+cafe.branch+')':''}`;
   document.getElementById('overrideModalCurrentPerson').textContent = `현재 담당: ${cafe.person}`;
   document.getElementById('overridePersonSelect').value = cafe.person;
+  const deleteBtn = document.getElementById('overrideDeleteBtn');
+  if (window._currentUser?.isAdmin) {
+    deleteBtn.textContent = '🗑 폐업 삭제';
+    deleteBtn.style.background = '#dc2626';
+    deleteBtn.onclick = window.confirmDeleteCafe;
+  } else {
+    deleteBtn.textContent = '📢 폐업 삭제 요청';
+    deleteBtn.style.background = '#f59e0b';
+    deleteBtn.onclick = window.requestDeleteCafe;
+  }
   document.getElementById('overrideModal').classList.add('open');
 };
 
@@ -1309,6 +1306,24 @@ window.confirmDeleteCafe = async function() {
     window.buildStats();
     window.render();
   } catch(e) { alert('저장 오류: ' + e.message); }
+};
+
+window.requestDeleteCafe = async function() {
+  if (!overrideModalCafe) return;
+  const cafeName = overrideModalCafe.name;
+  if (!confirm(`[${cafeName}] 폐업 삭제를 관리자에게 요청하시겠습니까?`)) return;
+  const key = cafeKey(overrideModalCafe);
+  try {
+    await window._setDoc(window._doc(window._db, 'deleteRequests', key), {
+      cafeName,
+      cafeKey: key,
+      person: overrideModalCafe.person,
+      requestedBy: window._currentUser?.nickname || '',
+      requestedAt: new Date().toISOString()
+    });
+    window.closeOverrideModal();
+    alert(`[${cafeName}] 삭제 요청이 관리자에게 전달되었습니다.`);
+  } catch(e) { alert('요청 오류: ' + e.message); }
 };
 
 function renderDeletedCafeList() {
@@ -1975,7 +1990,7 @@ window.renderMapView=async function(){
       zIndex:r._customId?6:5
     });
     const iw=new naver.maps.InfoWindow({
-      content:`<div style="padding:10px 14px;font-family:'Noto Sans KR',sans-serif;min-width:190px;max-width:240px;">${customBadge}<div style="font-weight:700;font-size:13px;margin-bottom:3px;">${r.name}${r.branch?' ('+r.branch+')':''}</div><div style="font-size:11px;color:#888;margin-bottom:4px;">${r.dong||''}</div><div style="font-size:11px;color:#555;line-height:1.5;margin-bottom:7px;">${(r.addr||'').replace('경기도 안성시 ','')}</div><div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><span style="font-size:10px;padding:2px 8px;border-radius:10px;background:${color}22;color:${color};font-weight:600;">${r.person}</span><a href="${naverUrl}" target="_blank" style="font-size:11px;color:#185FA5;text-decoration:none;font-weight:600;white-space:nowrap;">네이버 지도 →</a></div>${deleteBtnHtml}</div>`,
+      content:`<div style="position:relative;padding:10px 14px 10px 14px;padding-top:22px;font-family:'Noto Sans KR',sans-serif;min-width:190px;max-width:240px;"><button onclick="window.closeMapInfoWindow()" style="position:absolute;top:5px;right:8px;background:none;border:none;cursor:pointer;font-size:15px;color:#aaa;line-height:1;padding:0;" title="닫기">✕</button>${customBadge}<div style="font-weight:700;font-size:13px;margin-bottom:3px;">${r.name}${r.branch?' ('+r.branch+')':''}</div><div style="font-size:11px;color:#888;margin-bottom:4px;">${r.dong||''}</div><div style="font-size:11px;color:#555;line-height:1.5;margin-bottom:7px;">${(r.addr||'').replace('경기도 안성시 ','')}</div><div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><span style="font-size:10px;padding:2px 8px;border-radius:10px;background:${color}22;color:${color};font-weight:600;">${r.person}</span><a href="${naverUrl}" target="_blank" style="font-size:11px;color:#185FA5;text-decoration:none;font-weight:600;white-space:nowrap;">네이버 지도 →</a></div>${deleteBtnHtml}</div>`,
       borderWidth:1,borderColor:color,backgroundColor:'#fff'
     });
     naver.maps.Event.addListener(mk,'click',()=>{
@@ -2146,6 +2161,8 @@ window.toggleMapBoundary=function(){
   _npoly.forEach(p=>p.poly.setMap(_pv[p.person]!==false&&_nsb?_nvm:null));
 };
 
+window.closeMapInfoWindow=function(){if(_niw){_niw.close();_niw=null;}};
+
 window.fitMapAll=function(){
   if(!_nvm||!_nmk.length)return;
   const b=new naver.maps.LatLngBounds();
@@ -2221,7 +2238,7 @@ window.saveNewCafe=async function(){
           zIndex:6
         });
         const iw=new naver.maps.InfoWindow({
-          content:`<div style="padding:10px 14px;font-family:'Noto Sans KR',sans-serif;min-width:190px;max-width:240px;"><span style="font-size:10px;background:#dcfce7;color:#16a34a;padding:1px 6px;border-radius:8px;display:inline-block;margin-bottom:4px;">직접 추가</span><br><div style="font-weight:700;font-size:13px;margin-bottom:3px;">${name}${branch?' ('+branch+')':''}</div><div style="font-size:11px;color:#888;margin-bottom:4px;">${dong}</div><div style="font-size:11px;color:#555;line-height:1.5;margin-bottom:7px;">${addr.replace('경기도 안성시 ','')}</div><div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><span style="font-size:10px;padding:2px 8px;border-radius:10px;background:${color}22;color:${color};font-weight:600;">${person}</span><a href="${naverUrl}" target="_blank" style="font-size:11px;color:#185FA5;text-decoration:none;font-weight:600;white-space:nowrap;">네이버 지도 →</a></div>${deleteBtnHtml}</div>`,
+          content:`<div style="position:relative;padding:10px 14px 10px 14px;padding-top:22px;font-family:'Noto Sans KR',sans-serif;min-width:190px;max-width:240px;"><button onclick="window.closeMapInfoWindow()" style="position:absolute;top:5px;right:8px;background:none;border:none;cursor:pointer;font-size:15px;color:#aaa;line-height:1;padding:0;" title="닫기">✕</button><span style="font-size:10px;background:#dcfce7;color:#16a34a;padding:1px 6px;border-radius:8px;display:inline-block;margin-bottom:4px;">직접 추가</span><br><div style="font-weight:700;font-size:13px;margin-bottom:3px;">${name}${branch?' ('+branch+')':''}</div><div style="font-size:11px;color:#888;margin-bottom:4px;">${dong}</div><div style="font-size:11px;color:#555;line-height:1.5;margin-bottom:7px;">${addr.replace('경기도 안성시 ','')}</div><div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><span style="font-size:10px;padding:2px 8px;border-radius:10px;background:${color}22;color:${color};font-weight:600;">${person}</span><a href="${naverUrl}" target="_blank" style="font-size:11px;color:#185FA5;text-decoration:none;font-weight:600;white-space:nowrap;">네이버 지도 →</a></div>${deleteBtnHtml}</div>`,
           borderWidth:1,borderColor:color,backgroundColor:'#fff'
         });
         naver.maps.Event.addListener(mk,'click',()=>{
