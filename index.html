@@ -1814,6 +1814,12 @@ function _sgc(){try{localStorage.setItem('anseong_geo_v1',JSON.stringify(_gc))}c
 function _g1(addr){
   return new Promise(ok=>{
     if(_gc[addr]){ok(_gc[addr]);return;}
+    // 지오코더 서브모듈 미로드(API 키 401 등) 시 조용히 null 반환
+    if(!naver.maps.Service){
+      const stEl=document.getElementById('mapGeoStatus');
+      if(stEl)stEl.textContent='⚠ 지도 API 인증 실패 — 로컬 서버(Live Server 등)로 실행해 주세요';
+      ok(null);return;
+    }
     const t=setTimeout(()=>ok(null),6000);
     naver.maps.Service.geocode({query:addr},(st,res)=>{
       clearTimeout(t);
@@ -1923,6 +1929,14 @@ window.renderMapView=async function(){
     _npoly.push({poly,person});
   });
 
+  // 전체 구역 경계 (점선 검정 테두리)
+  if(_zbc['전체']&&(_zbc['전체'].paths||[]).length>=3){
+    const ll=_zbc['전체'].paths.map(p=>new naver.maps.LatLng(p.lat,p.lng));
+    ll.push(ll[0]);
+    const totalPoly=new naver.maps.Polyline({map:_nsb?_nvm:null,path:ll,strokeColor:'#374151',strokeWeight:3,strokeOpacity:0.75,strokeStyle:'shortdash',zIndex:0});
+    _npoly.push({poly:totalPoly,person:'전체'});
+  }
+
   const btnB=document.getElementById('btnBoundary');
   if(btnB){btnB.textContent=_nsb?'🗺 구역 경계 ON':'🗺 구역 경계 OFF';btnB.classList.toggle('active',_nsb);}
 
@@ -1987,22 +2001,44 @@ window.showMyLocation=function(){
 /* ── 구역 편집 ── */
 window.openDrawPanel=function(){
   document.getElementById('drawSubPanel').style.display='block';
-  document.getElementById('drawStatusText').textContent='편집할 담당자 선택 후 지도를 클릭해 경계를 그리세요';
+  document.getElementById('drawStatusText').textContent='편집할 구역을 선택하세요 · 기존 경계가 있으면 자동으로 불러와 수정합니다';
   const btns=document.getElementById('drawPersonBtns');
-  btns.innerHTML=Object.entries(_MC).map(([person,color])=>
-    `<button class="map-ctrl-btn" onclick="window.startZoneDraw('${person}')" style="background:${color};color:#fff;border-color:${color};">${person.replace(' 형제','')}</button>` +
-    `<button class="map-ctrl-btn" onclick="window.resetZoneBound('${person}')" title="${person} 구역 초기화" style="border-color:${color};color:${color};font-size:10px;">↺ 초기화</button>`
-  ).join('');
+  const personBtns=Object.entries(_MC).map(([person,color])=>{
+    const hasEx=_zbc&&(_zbc[person]?.paths||[]).length>=3;
+    return `<button class="map-ctrl-btn" onclick="window.startZoneDraw('${person}')" style="background:${color};color:#fff;border-color:${color};">${person.replace(' 형제','')} <span style="font-size:10px;opacity:0.85;">${hasEx?'✏ 수정':'+ 신규'}</span></button>`+
+      `<button class="map-ctrl-btn" onclick="window.resetZoneBound('${person}')" title="${person} 구역 초기화" style="border-color:${color};color:${color};font-size:10px;">↺ 초기화</button>`;
+  }).join('');
+  const hasTotal=_zbc&&(_zbc['전체']?.paths||[]).length>=3;
+  const totalBtn=`<button class="map-ctrl-btn" onclick="window.startZoneDraw('전체')" style="background:#374151;color:#fff;border-color:#374151;">전체 구역 <span style="font-size:10px;opacity:0.85;">${hasTotal?'✏ 수정':'+ 신규'}</span></button>`+
+    `<button class="map-ctrl-btn" onclick="window.resetZoneBound('전체')" style="border-color:#374151;color:#374151;font-size:10px;">↺ 삭제</button>`;
+  btns.innerHTML=personBtns+`<div style="width:100%;height:1px;background:#e5e7eb;margin:8px 0;flex-basis:100%;"></div>`+totalBtn;
 };
 
 window.startZoneDraw=function(person){
   window.cancelZoneDraw();
   _drawMode=true;_drawPerson=person;_drawPts=[];
+  const color=person==='전체'?'#374151':(_MC[person]||'#888');
+  // 기존 경계 불러오기
+  if(_zbc&&(_zbc[person]?.paths||[]).length>=3){
+    _drawPts=_zbc[person].paths.map(p=>new naver.maps.LatLng(p.lat,p.lng));
+    _drawPts.forEach(pt=>{
+      const vm=new naver.maps.Marker({
+        position:pt,map:_nvm,
+        icon:{content:`<div style="width:11px;height:11px;background:${color};border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 2px ${color};"></div>`,anchor:new naver.maps.Point(5,5)},
+        zIndex:20
+      });
+      _drawTmpMks.push(vm);
+    });
+    if(_drawPts.length>=3){
+      _drawPolyPrev=new naver.maps.Polygon({map:_nvm,paths:_drawPts,fillColor:color,fillOpacity:0.15,strokeColor:color,strokeWeight:2.5,strokeOpacity:0.9,zIndex:15});
+    }
+    document.getElementById('drawStatusText').textContent=`[${person.replace(' 형제','')}] 기존 ${_drawPts.length}개 꼭지점 로드됨 · 클릭으로 추가 | ↩ 로 마지막 꼭지점 제거`;
+  }else{
+    document.getElementById('drawStatusText').textContent=`[${person.replace(' 형제','')}] 지도 클릭으로 꼭지점 추가 (최소 3개) · ✓완료로 저장`;
+  }
   document.getElementById('naverMap').style.cursor='crosshair';
-  document.getElementById('drawStatusText').textContent=`[${person.replace(' 형제','')}] 지도 클릭으로 꼭지점 추가 (최소 3개) · ✓완료로 저장`;
   _drawCL=naver.maps.Event.addListener(_nvm,'click',function(e){
     _drawPts.push(e.coord);
-    const color=_MC[_drawPerson]||'#888';
     const vm=new naver.maps.Marker({
       position:e.coord,map:_nvm,
       icon:{content:`<div style="width:10px;height:10px;background:${color};border-radius:50%;border:2px solid #fff;"></div>`,anchor:new naver.maps.Point(5,5)},
@@ -2013,7 +2049,7 @@ window.startZoneDraw=function(person){
     if(_drawPts.length>=3){
       _drawPolyPrev=new naver.maps.Polygon({map:_nvm,paths:_drawPts,fillColor:color,fillOpacity:0.2,strokeColor:color,strokeWeight:2.5,strokeOpacity:0.9,zIndex:15});
     }
-    document.getElementById('drawStatusText').textContent=`[${_drawPerson.replace(' 형제','')}] ${_drawPts.length}개 꼭지점 추가됨 · ✓완료로 저장`;
+    document.getElementById('drawStatusText').textContent=`[${_drawPerson.replace(' 형제','')}] ${_drawPts.length}개 꼭지점 · ✓완료로 저장`;
   });
 };
 
@@ -2023,7 +2059,7 @@ window.undoLastPt=function(){
   const m=_drawTmpMks.pop();if(m)m.setMap(null);
   if(_drawPolyPrev){_drawPolyPrev.setMap(null);_drawPolyPrev=null;}
   if(_drawPts.length>=3){
-    const color=_MC[_drawPerson]||'#888';
+    const color=_drawPerson==='전체'?'#374151':(_MC[_drawPerson]||'#888');
     _drawPolyPrev=new naver.maps.Polygon({map:_nvm,paths:_drawPts,fillColor:color,fillOpacity:0.2,strokeColor:color,strokeWeight:2.5,strokeOpacity:0.9,zIndex:15});
   }
   document.getElementById('drawStatusText').textContent=`[${(_drawPerson||'').replace(' 형제','')}] ${_drawPts.length}개 꼭지점 · ✓완료로 저장`;
@@ -2050,31 +2086,43 @@ window.finishZoneDraw=async function(){
     window.cancelZoneDraw();
     _npoly.forEach(p=>{if(p.person===pn)p.poly.setMap(null);});
     _npoly=_npoly.filter(p=>p.person!==pn);
-    const color=_MC[pn]||'#888';
-    const on=_pv[pn]!==false;
-    const poly=new naver.maps.Polygon({map:on&&_nsb?_nvm:null,paths:paths.map(p=>new naver.maps.LatLng(p.lat,p.lng)),fillColor:color,fillOpacity:0.1,strokeColor:color,strokeWeight:2.5,strokeOpacity:0.8,zIndex:1});
+    let poly;
+    if(pn==='전체'){
+      const ll=paths.map(p=>new naver.maps.LatLng(p.lat,p.lng));
+      ll.push(ll[0]);
+      poly=new naver.maps.Polyline({map:_nsb?_nvm:null,path:ll,strokeColor:'#374151',strokeWeight:3,strokeOpacity:0.75,strokeStyle:'shortdash',zIndex:0});
+    }else{
+      const color=_MC[pn]||'#888';
+      const on=_pv[pn]!==false;
+      poly=new naver.maps.Polygon({map:on&&_nsb?_nvm:null,paths:paths.map(p=>new naver.maps.LatLng(p.lat,p.lng)),fillColor:color,fillOpacity:0.1,strokeColor:color,strokeWeight:2.5,strokeOpacity:0.8,zIndex:1});
+    }
     _npoly.push({poly,person:pn});
-    alert(`[${pn}] 구역 경계가 저장되었습니다.`);
+    alert(`[${pn==='전체'?'전체 구역':pn}] 경계가 저장되었습니다.`);
   }catch(e){alert('저장 오류: '+e.message);}
 };
 
 window.resetZoneBound=async function(person){
-  if(!confirm(`[${person}] 구역 경계를 자동 계산으로 초기화하시겠습니까?`))return;
+  const msg=person==='전체'?'전체 구역 경계를 삭제하시겠습니까?':`[${person}] 구역 경계를 자동 계산으로 초기화하시겠습니까?`;
+  if(!confirm(msg))return;
   try{
     await window._deleteDoc(window._doc(window._db,'zoneBoundaries',person));
     if(_zbc)delete _zbc[person];
     _npoly.forEach(p=>{if(p.person===person)p.poly.setMap(null);});
     _npoly=_npoly.filter(p=>p.person!==person);
-    const pts=_nmk.filter(m=>m.person===person).map(m=>{const pos=m.marker.getPosition();return{x:pos.lng(),y:pos.lat()};});
-    if(pts.length>=3){
-      const hull=_exph(_hull(pts));
-      const color=_MC[person]||'#888';
-      const on=_pv[person]!==false;
-      const poly=new naver.maps.Polygon({map:on&&_nsb?_nvm:null,paths:hull.map(p=>new naver.maps.LatLng(p.y,p.x)),fillColor:color,fillOpacity:0.1,strokeColor:color,strokeWeight:2.5,strokeOpacity:0.8,zIndex:1});
-      _npoly.push({poly,person});
+    if(person!=='전체'){
+      const pts=_nmk.filter(m=>m.person===person).map(m=>{const pos=m.marker.getPosition();return{x:pos.lng(),y:pos.lat()};});
+      if(pts.length>=3){
+        const hull=_exph(_hull(pts));
+        const color=_MC[person]||'#888';
+        const on=_pv[person]!==false;
+        const poly=new naver.maps.Polygon({map:on&&_nsb?_nvm:null,paths:hull.map(p=>new naver.maps.LatLng(p.y,p.x)),fillColor:color,fillOpacity:0.1,strokeColor:color,strokeWeight:2.5,strokeOpacity:0.8,zIndex:1});
+        _npoly.push({poly,person});
+      }
+      alert(`[${person}] 구역이 자동 계산으로 초기화되었습니다.`);
+    }else{
+      alert('전체 구역 경계가 삭제되었습니다.');
     }
     document.getElementById('drawSubPanel').style.display='none';
-    alert(`[${person}] 구역이 자동 계산으로 초기화되었습니다.`);
   }catch(e){alert('오류: '+e.message);}
 };
 
